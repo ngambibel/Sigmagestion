@@ -87,6 +87,65 @@ export interface DonneesInscription {
   password: string;
 }
 
+export interface Secretariat {
+  id: number;
+  nom: string;
+  code: string;
+  ville: string;
+  quartier: string;
+  telephone: string;
+  devise: string;
+  onboarding_termine: boolean;
+  proprietaire: number;
+  cree_le: string;
+}
+
+export interface ServiceModele {
+  nom: string;
+  categorie: string;
+  unite_facturation: string;
+  prix: number;
+  consomme_stock: boolean;
+}
+
+export interface ConsommableModele {
+  nom: string;
+  unite_mesure: string;
+  prix_achat: number;
+  seuil_alerte: number;
+}
+
+export interface ModelesOnboarding {
+  services: ServiceModele[];
+  consommables: ConsommableModele[];
+}
+
+export interface Service {
+  id: number;
+  nom: string;
+  categorie: string;
+  unite_facturation: string;
+  prix: number;
+  consomme_stock: boolean;
+  actif: boolean;
+  couleur: string;
+  icone: string;
+  ordre: number;
+}
+
+export interface Consommable {
+  id: number;
+  nom: string;
+  unite_mesure: string;
+  prix_achat: number;
+  qte_stock: string;
+  seuil_alerte: string;
+  seuil_critique: string | null;
+  fournisseur: string;
+  actif: boolean;
+  sous_seuil: boolean;
+}
+
 export const api = {
   sante: () => requete<Sante>("/sante/", { publique: true }),
 
@@ -110,5 +169,36 @@ export const api = {
     requete<null>("/auth/deconnexion/", {
       method: "POST",
       body: JSON.stringify({ refresh }),
+    }),
+
+  // --- Secrétariats ---
+  listerSecretariats: () => requete<Secretariat[]>("/secretariats/"),
+
+  creerSecretariat: (donnees: Partial<Secretariat>) =>
+    requete<Secretariat>("/secretariats/", {
+      method: "POST",
+      body: JSON.stringify(donnees),
+    }),
+
+  modifierSecretariat: (id: number, donnees: Partial<Secretariat>) =>
+    requete<Secretariat>(`/secretariats/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(donnees),
+    }),
+
+  // --- Onboarding ---
+  modelesOnboarding: () => requete<ModelesOnboarding>("/onboarding/modeles/"),
+
+  // --- Catalogue ---
+  listerServices: () => requete<Service[]>("/services/"),
+  creerService: (donnees: Partial<Service>) =>
+    requete<Service>("/services/", { method: "POST", body: JSON.stringify(donnees) }),
+
+  // --- Stocks ---
+  listerConsommables: () => requete<Consommable[]>("/consommables/"),
+  creerConsommable: (donnees: Record<string, unknown>) =>
+    requete<Consommable>("/consommables/", {
+      method: "POST",
+      body: JSON.stringify(donnees),
     }),
 };
