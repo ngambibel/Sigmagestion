@@ -15,7 +15,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = [
             "id", "nom", "categorie", "unite_facturation", "prix",
-            "consomme_stock", "actif", "couleur", "icone", "ordre", "activable",
+            "consomme_stock", "actif", "couleur", "icone", "image", "ordre", "activable",
         ]
         read_only_fields = ["id", "activable"]
 

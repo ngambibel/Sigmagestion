@@ -28,6 +28,10 @@ class Service(models.Model):
     actif = models.BooleanField("actif", default=True)
     couleur = models.CharField("couleur", max_length=7, blank=True, default="")
     icone = models.CharField("icône", max_length=40, blank=True, default="")
+    image = models.ImageField(
+        "image", upload_to="services/", null=True, blank=True,
+        help_text="Photo/pictogramme du service, pour une reconnaissance rapide au comptoir.",
+    )
     ordre = models.PositiveIntegerField("ordre d'affichage", default=0)
 
     cree_le = models.DateTimeField(auto_now_add=True)

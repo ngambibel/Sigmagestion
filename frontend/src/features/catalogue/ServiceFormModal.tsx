@@ -27,19 +27,20 @@ export function ServiceFormModal({ service, onFermer }: Props) {
   const [unite, setUnite] = useState(service?.unite_facturation ?? "page");
   const [consommeStock, setConsommeStock] = useState(service?.consomme_stock ?? false);
   const [actif, setActif] = useState(service?.actif ?? true);
+  const [image, setImage] = useState<File | null>(null);
 
   const queryClient = useQueryClient();
 
   const enregistrer = useMutation({
     mutationFn: async () => {
-      const donnees = {
-        nom,
-        categorie,
-        prix: Number(prix),
-        unite_facturation: unite,
-        consomme_stock: consommeStock,
-        actif,
-      };
+      const donnees = new FormData();
+      donnees.append("nom", nom);
+      donnees.append("categorie", categorie);
+      donnees.append("prix", String(Number(prix)));
+      donnees.append("unite_facturation", unite);
+      donnees.append("consomme_stock", String(consommeStock));
+      donnees.append("actif", String(actif));
+      if (image) donnees.append("image", image);
       return creation
         ? api.creerService(donnees)
         : api.modifierService(service.id, donnees);
@@ -78,6 +79,24 @@ export function ServiceFormModal({ service, onFermer }: Props) {
           <Select label="Facturation" options={UNITES} value={unite} onChange={(e) => setUnite(e.target.value)} />
         </div>
         <Input label="Catégorie" value={categorie} onChange={(e) => setCategorie(e.target.value)} />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm text-encre-douce">Image (facultatif)</label>
+          <div className="flex items-center gap-3">
+            {(image || service?.image) && (
+              <img
+                src={image ? URL.createObjectURL(image) : (service?.image ?? "")}
+                alt=""
+                className="h-14 w-14 rounded-lg object-cover"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+              className="text-sm text-encre-douce file:mr-2 file:rounded-lg file:border-0 file:bg-papier-creux file:px-3 file:py-1.5"
+            />
+          </div>
+        </div>
         <label className="flex items-center gap-2 text-encre-douce">
           <input type="checkbox" className="h-5 w-5 accent-cyan" checked={consommeStock} onChange={(e) => setConsommeStock(e.target.checked)} />
           Consomme du stock

@@ -44,10 +44,11 @@ async function rafraichirAcces(): Promise<boolean> {
 async function requete<T>(chemin: string, options: Options = {}): Promise<T> {
   const { publique, _reessaye, headers, ...reste } = options;
   const token = useAuthStore.getState().accessToken;
-  const entetes: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(headers as Record<string, string>),
-  };
+  const entetes: Record<string, string> = { ...(headers as Record<string, string>) };
+  // Pour un envoi FormData, on laisse le navigateur fixer le Content-Type (frontière multipart).
+  if (!(reste.body instanceof FormData)) {
+    entetes["Content-Type"] = "application/json";
+  }
   if (!publique && token) entetes.Authorization = `Bearer ${token}`;
 
   const reponse = await fetch(`${BASE_URL}${chemin}`, { headers: entetes, ...reste });
@@ -130,6 +131,7 @@ export interface Service {
   actif: boolean;
   couleur: string;
   icone: string;
+  image: string | null;
   ordre: number;
   activable: boolean;
 }
@@ -229,10 +231,16 @@ export const api = {
 
   // --- Catalogue ---
   listerServices: () => requete<Service[]>("/services/"),
-  creerService: (donnees: Partial<Service>) =>
-    requete<Service>("/services/", { method: "POST", body: JSON.stringify(donnees) }),
-  modifierService: (id: number, donnees: Partial<Service>) =>
-    requete<Service>(`/services/${id}/`, { method: "PATCH", body: JSON.stringify(donnees) }),
+  creerService: (donnees: Partial<Service> | FormData) =>
+    requete<Service>("/services/", {
+      method: "POST",
+      body: donnees instanceof FormData ? donnees : JSON.stringify(donnees),
+    }),
+  modifierService: (id: number, donnees: Partial<Service> | FormData) =>
+    requete<Service>(`/services/${id}/`, {
+      method: "PATCH",
+      body: donnees instanceof FormData ? donnees : JSON.stringify(donnees),
+    }),
   supprimerService: (id: number) =>
     requete<null>(`/services/${id}/`, { method: "DELETE" }),
   getNomenclature: (serviceId: number) =>

@@ -680,6 +680,11 @@ export interface components {
             couleur?: string;
             /** Icône */
             icone?: string;
+            /**
+             * Format: uri
+             * @description Photo/pictogramme du service, pour une reconnaissance rapide au comptoir.
+             */
+            image?: string | null;
             /** Ordre d'affichage */
             ordre?: number;
             readonly activable?: boolean;
@@ -733,6 +738,11 @@ export interface components {
             couleur?: string;
             /** Icône */
             icone?: string;
+            /**
+             * Format: uri
+             * @description Photo/pictogramme du service, pour une reconnaissance rapide au comptoir.
+             */
+            image?: string | null;
             /** Ordre d'affichage */
             ordre?: number;
             readonly activable: boolean;
