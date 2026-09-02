@@ -391,6 +391,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sessions-caisse/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Ouverture et consultation des sessions de caisse.
+         *
+         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
+         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
+         */
+        get: operations["v1_sessions_caisse_list"];
+        put?: never;
+        /**
+         * @description Ouverture et consultation des sessions de caisse.
+         *
+         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
+         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
+         */
+        post: operations["v1_sessions_caisse_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions-caisse/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Ouverture et consultation des sessions de caisse.
+         *
+         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
+         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
+         */
+        get: operations["v1_sessions_caisse_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions-caisse/active/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /sessions-caisse/active/ — la session ouverte de l'utilisateur, ou null. */
+        get: operations["v1_sessions_caisse_active_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -670,6 +737,35 @@ export interface components {
             ordre?: number;
             readonly activable: boolean;
         };
+        SessionCaisse: {
+            readonly id: number;
+            readonly employe: number;
+            readonly employe_nom: string;
+            /** Fond de caisse initial (XAF) */
+            fond_initial?: number;
+            readonly statut: components["schemas"]["StatutEnum"];
+            /** Montant théorique (XAF) */
+            readonly montant_theorique: number | null;
+            /** Montant compté (XAF) */
+            readonly montant_compte: number | null;
+            /** Écart (XAF) */
+            readonly ecart: number | null;
+            /** Commentaire de clôture */
+            readonly commentaire: string;
+            /** Format: date-time */
+            readonly ouverte_le: string;
+            /**
+             * Clôturée le
+             * Format: date-time
+             */
+            readonly cloturee_le: string | null;
+        };
+        /**
+         * @description * `ouverte` - Ouverte
+         *     * `cloturee` - Clôturée
+         * @enum {string}
+         */
+        StatutEnum: "ouverte" | "cloturee";
         TokenRefresh: {
             readonly access: string;
             refresh: string;
@@ -1484,6 +1580,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_sessions_caisse_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionCaisse"][];
+                };
+            };
+        };
+    };
+    v1_sessions_caisse_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SessionCaisse"];
+                "application/x-www-form-urlencoded": components["schemas"]["SessionCaisse"];
+                "multipart/form-data": components["schemas"]["SessionCaisse"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionCaisse"];
+                };
+            };
+        };
+    };
+    v1_sessions_caisse_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this session de caisse. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionCaisse"];
+                };
+            };
+        };
+    };
+    v1_sessions_caisse_active_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionCaisse"];
                 };
             };
         };

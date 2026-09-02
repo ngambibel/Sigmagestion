@@ -155,6 +155,20 @@ export interface Consommable {
   sous_seuil: boolean;
 }
 
+export interface SessionCaisse {
+  id: number;
+  employe: number;
+  employe_nom: string;
+  fond_initial: number;
+  statut: string;
+  montant_theorique: number | null;
+  montant_compte: number | null;
+  ecart: number | null;
+  commentaire: string;
+  ouverte_le: string;
+  cloturee_le: string | null;
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -259,6 +273,14 @@ export const api = {
       `/consommables/${id}/ajustement/`,
       { method: "POST", body: JSON.stringify(donnees) },
     ),
+
+  // --- Sessions de caisse ---
+  sessionActive: () => requete<SessionCaisse | null>("/sessions-caisse/active/"),
+  ouvrirSession: (fond_initial: number) =>
+    requete<SessionCaisse>("/sessions-caisse/", {
+      method: "POST",
+      body: JSON.stringify({ fond_initial }),
+    }),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
