@@ -4,6 +4,8 @@ import { api } from "../../lib/api";
 import { EnTetePage } from "../../components/layout/EnTetePage";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { TuilesServices } from "../../features/caisse/TuilesServices";
+import { TicketEnCours } from "../../features/caisse/TicketEnCours";
 
 function OuvertureSession() {
   const [fond, setFond] = useState<number>(0);
@@ -46,7 +48,7 @@ function OuvertureSession() {
 function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondInitial: number }) {
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-4">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
         <span className="rounded-lg bg-valide px-2 py-1 text-sm text-white">Caisse ouverte</span>
         <span className="text-encre-douce">
           Fond : <span className="tabular font-medium">{fondInitial.toLocaleString("fr-FR")} XAF</span>
@@ -56,8 +58,11 @@ function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondIni
         </span>
       </div>
 
-      <div className="rounded-2xl border border-dashed border-papier-creux bg-papier-surface p-10 text-center text-encre-pale">
-        L'écran de vente (tuiles services + ticket) arrive à l'étape suivante.
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <TuilesServices />
+        <div className="lg:sticky lg:top-16 lg:h-[calc(100vh-6rem)]">
+          <TicketEnCours />
+        </div>
       </div>
     </div>
   );

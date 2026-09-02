@@ -338,7 +338,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 3 — Point de vente, le cœur du produit (Lot 3)
 
-## Étape 3.1 — Sessions de caisse `[~]`
+## Étape 3.1 — Sessions de caisse `[x]`
 
 🎯 **Objectif** : un employé ouvre sa session avec un fond de caisse.
 
@@ -353,7 +353,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.2 — Écran de saisie et ticket en cours `[ ]`
+## Étape 3.2 — Écran de saisie et ticket en cours `[~]`
 
 🎯 **Objectif** : l'écran de vente avec les tuiles services et le ticket.
 

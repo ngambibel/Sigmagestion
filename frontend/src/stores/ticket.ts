@@ -1,0 +1,70 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Service } from "../lib/api";
+
+export interface LigneTicket {
+  serviceId: number;
+  nom: string;
+  prix: number;
+  quantite: number;
+}
+
+interface TicketState {
+  lignes: LigneTicket[];
+  remise: number;
+  ajouter: (service: Service) => void;
+  changerQuantite: (serviceId: number, quantite: number) => void;
+  retirer: (serviceId: number) => void;
+  definirRemise: (montant: number) => void;
+  vider: () => void;
+}
+
+export const useTicketStore = create<TicketState>()(
+  persist(
+    (set) => ({
+      lignes: [],
+      remise: 0,
+      ajouter: (service) =>
+        set((etat) => {
+          const existante = etat.lignes.find((l) => l.serviceId === service.id);
+          if (existante) {
+            return {
+              lignes: etat.lignes.map((l) =>
+                l.serviceId === service.id ? { ...l, quantite: l.quantite + 1 } : l,
+              ),
+            };
+          }
+          return {
+            lignes: [
+              ...etat.lignes,
+              { serviceId: service.id, nom: service.nom, prix: service.prix, quantite: 1 },
+            ],
+          };
+        }),
+      changerQuantite: (serviceId, quantite) =>
+        set((etat) => ({
+          lignes:
+            quantite <= 0
+              ? etat.lignes.filter((l) => l.serviceId !== serviceId)
+              : etat.lignes.map((l) =>
+                  l.serviceId === serviceId ? { ...l, quantite } : l,
+                ),
+        })),
+      retirer: (serviceId) =>
+        set((etat) => ({ lignes: etat.lignes.filter((l) => l.serviceId !== serviceId) })),
+      definirRemise: (montant) => set({ remise: Math.max(0, montant) }),
+      vider: () => set({ lignes: [], remise: 0 }),
+    }),
+    { name: "sigma-ticket" },
+  ),
+);
+
+/** Sous-total (avant remise). */
+export function sousTotal(lignes: LigneTicket[]): number {
+  return lignes.reduce((somme, l) => somme + l.prix * l.quantite, 0);
+}
+
+/** Total à payer (après remise, jamais négatif). */
+export function totalTicket(lignes: LigneTicket[], remise: number): number {
+  return Math.max(0, sousTotal(lignes) - remise);
+}
