@@ -1,19 +1,26 @@
 """Vues d'authentification et de profil."""
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import ConnexionSerializer, MoiSerializer
+from .serializers import ConnexionSerializer, InscriptionSerializer, MoiSerializer
 
 
 class ConnexionView(TokenObtainPairView):
     """POST /auth/connexion/ — téléphone + mot de passe → paire de tokens."""
 
     serializer_class = ConnexionSerializer
+
+
+class InscriptionView(generics.CreateAPIView):
+    """POST /auth/inscription/ — crée un propriétaire et le connecte."""
+
+    serializer_class = InscriptionSerializer
+    permission_classes = [AllowAny]
 
 
 class DeconnexionView(APIView):

@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/inscription/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /auth/inscription/ — crée un propriétaire et le connecte. */
+        post: operations["v1_auth_inscription_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/rafraichir/": {
         parameters: {
             query?: never;
@@ -110,6 +127,26 @@ export interface components {
          */
         Connexion: {
             telephone: string;
+            password: string;
+        };
+        /**
+         * @description Inscription d'un propriétaire (M1.1).
+         *
+         *     Crée le compte, le connecte immédiatement (renvoie une paire de tokens).
+         */
+        Inscription: {
+            /** Nom complet */
+            nom: string;
+            /**
+             * Téléphone
+             * @description Format camerounais, ex. +237 6XX XXX XXX
+             */
+            telephone: string;
+            /**
+             * Adresse électronique
+             * Format: email
+             */
+            email?: string;
             password: string;
         };
         /** @description Profil de l'utilisateur courant. */
@@ -239,6 +276,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    v1_auth_inscription_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Inscription"];
+                "application/x-www-form-urlencoded": components["schemas"]["Inscription"];
+                "multipart/form-data": components["schemas"]["Inscription"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inscription"];
+                };
             };
         };
     };

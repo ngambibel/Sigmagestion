@@ -149,7 +149,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 0.6 — Connexion bout-en-bout (front ↔ back) `[~]`
+## Étape 0.6 — Connexion bout-en-bout (front ↔ back) `[x]`
 
 🎯 **Objectif** : le « hello world authentifié » — je me connecte depuis le front et je vois mon profil.
 
@@ -172,7 +172,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 1 — Comptes, secrétariats et isolation (Lot 1)
 
-## Étape 1.1 — Inscription du propriétaire `[ ]`
+## Étape 1.1 — Inscription du propriétaire `[~]`
 
 🎯 **Objectif** : un nouveau propriétaire crée son compte depuis le front.
 

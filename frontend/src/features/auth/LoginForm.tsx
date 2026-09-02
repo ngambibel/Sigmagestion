@@ -6,7 +6,7 @@ import { Input } from "../../components/ui/Input";
 import { api, ApiError } from "../../lib/api";
 import { useAuthStore } from "../../stores/auth";
 
-export function LoginForm() {
+export function LoginForm({ onBascule }: { onBascule: () => void }) {
   const [telephone, setTelephone] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const definirSession = useAuthStore((s) => s.definirSession);
@@ -68,6 +68,13 @@ export function LoginForm() {
           {connexion.isPending ? "Connexion…" : "Se connecter"}
         </Button>
       </form>
+
+      <p className="mt-6 text-center text-encre-douce">
+        Pas encore de compte ?{" "}
+        <button onClick={onBascule} className="font-medium text-cyan underline">
+          Créer un compte
+        </button>
+      </p>
     </div>
   );
 }

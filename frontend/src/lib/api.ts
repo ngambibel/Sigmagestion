@@ -80,6 +80,13 @@ export interface ReponseConnexion {
   doit_changer_mdp: boolean;
 }
 
+export interface DonneesInscription {
+  nom: string;
+  telephone: string;
+  email?: string;
+  password: string;
+}
+
 export const api = {
   sante: () => requete<Sante>("/sante/", { publique: true }),
 
@@ -88,6 +95,13 @@ export const api = {
       method: "POST",
       publique: true,
       body: JSON.stringify({ telephone, password }),
+    }),
+
+  inscription: (donnees: DonneesInscription) =>
+    requete<ReponseConnexion>("/auth/inscription/", {
+      method: "POST",
+      publique: true,
+      body: JSON.stringify(donnees),
     }),
 
   moi: () => requete<Utilisateur>("/moi/"),
