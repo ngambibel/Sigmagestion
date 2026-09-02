@@ -248,7 +248,10 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 2 — Catalogue et stock (Lot 2)
 
-## Étape 2.1 — Catalogue de services `[ ]`
+## Étape 2.1 — Catalogue de services `[x]`
+
+> Réalisée pendant la Phase 1 (modèle Service + CRUD isolé + écrans liste/création/édition/suppression côté front).
+
 
 🎯 **Objectif** : gérer les services et leurs prix.
 
@@ -264,7 +267,10 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 2.2 — Consommables `[ ]`
+## Étape 2.2 — Consommables `[x]`
+
+> Réalisée (modèle Consommable + CRUD isolé + écrans + endpoint `/consommables/alertes/`).
+
 
 🎯 **Objectif** : gérer les fiches consommables.
 
@@ -279,7 +285,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 2.3 — Nomenclature des services `[ ]`
+## Étape 2.3 — Nomenclature des services `[x]`
 
 🎯 **Objectif** : décrire quels consommables un service prélève, et en quelle quantité.
 
@@ -295,7 +301,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 2.4 — Entrées de stock avec CUMP `[ ]`
+## Étape 2.4 — Entrées de stock avec CUMP `[~]`
 
 🎯 **Objectif** : réapprovisionner et calculer automatiquement le coût moyen pondéré.
 

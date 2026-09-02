@@ -113,6 +113,23 @@ export interface paths {
         patch: operations["v1_consommables_partial_update"];
         trace?: never;
     };
+    "/api/v1/consommables/{id}/entree-stock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /consommables/{id}/entree-stock/ — réapprovisionnement + CUMP. */
+        post: operations["v1_consommables_entree_stock_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/consommables/alertes/": {
         parameters: {
             query?: never;
@@ -816,6 +833,34 @@ export interface operations {
                 "application/json": components["schemas"]["PatchedConsommable"];
                 "application/x-www-form-urlencoded": components["schemas"]["PatchedConsommable"];
                 "multipart/form-data": components["schemas"]["PatchedConsommable"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
+    v1_consommables_entree_stock_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Consommable"];
+                "application/x-www-form-urlencoded": components["schemas"]["Consommable"];
+                "multipart/form-data": components["schemas"]["Consommable"];
             };
         };
         responses: {

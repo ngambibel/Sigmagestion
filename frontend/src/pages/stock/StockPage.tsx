@@ -4,6 +4,8 @@ import { api, type Consommable } from "../../lib/api";
 import { EnTetePage, EtatVide } from "../../components/layout/EnTetePage";
 import { Button } from "../../components/ui/Button";
 import { ConsommableFormModal } from "../../features/stocks/ConsommableFormModal";
+import { EntreeStockModal } from "../../features/stocks/EntreeStockModal";
+import { useAuthStore } from "../../stores/auth";
 
 function formaterQte(valeur: string) {
   const n = Number(valeur);
@@ -14,6 +16,9 @@ export default function StockPage() {
   const consommables = useQuery({ queryKey: ["consommables"], queryFn: api.listerConsommables });
   const queryClient = useQueryClient();
   const [edition, setEdition] = useState<{ consommable: Consommable | null } | null>(null);
+  const [entree, setEntree] = useState<Consommable | null>(null);
+  const role = useAuthStore((s) => s.utilisateur?.role);
+  const peutReappro = role === "proprietaire" || role === "gerant" || role === "super_admin";
 
   const suppression = useMutation({
     mutationFn: (id: number) => api.supprimerConsommable(id),
@@ -63,6 +68,11 @@ export default function StockPage() {
                 <span className="tabular text-lg">
                   {formaterQte(c.qte_stock)} <span className="text-sm text-encre-pale">{c.unite_mesure}</span>
                 </span>
+                {peutReappro && (
+                  <button onClick={() => setEntree(c)} className="text-sm font-medium text-valide underline">
+                    Entrée
+                  </button>
+                )}
                 <button onClick={() => setEdition({ consommable: c })} className="text-sm font-medium text-cyan underline">
                   Modifier
                 </button>
@@ -77,6 +87,9 @@ export default function StockPage() {
 
       {edition && (
         <ConsommableFormModal consommable={edition.consommable} onFermer={() => setEdition(null)} />
+      )}
+      {entree && (
+        <EntreeStockModal consommable={entree} onFermer={() => setEntree(null)} />
       )}
     </div>
   );

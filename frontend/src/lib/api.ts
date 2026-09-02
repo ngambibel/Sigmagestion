@@ -231,4 +231,12 @@ export const api = {
     }),
   supprimerConsommable: (id: number) =>
     requete<null>(`/consommables/${id}/`, { method: "DELETE" }),
+  entreeStock: (
+    id: number,
+    donnees: { quantite: number; prix_total_lot: number; fournisseur?: string; motif?: string },
+  ) =>
+    requete<{ mouvement: unknown; consommable: Consommable }>(
+      `/consommables/${id}/entree-stock/`,
+      { method: "POST", body: JSON.stringify(donnees) },
+    ),
 };

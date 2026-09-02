@@ -48,3 +48,45 @@ class Consommable(models.Model):
     @property
     def sous_seuil(self) -> bool:
         return self.qte_stock <= self.seuil_alerte
+
+
+class TypeMouvement(models.TextChoices):
+    ENTREE = "entree", "Entrée (réapprovisionnement)"
+    SORTIE_VENTE = "sortie_vente", "Sortie (vente)"
+    AJUSTEMENT = "ajustement", "Ajustement"
+    ANNULATION = "annulation", "Annulation"
+
+
+class MouvementStock(models.Model):
+    """Trace immuable de chaque variation de stock. Source de vérité du `qte_stock`."""
+
+    secretariat = models.ForeignKey(
+        "secretariats.Secretariat", on_delete=models.CASCADE, related_name="mouvements_stock",
+    )
+    consommable = models.ForeignKey(
+        Consommable, on_delete=models.PROTECT, related_name="mouvements",
+    )
+    type = models.CharField("type", max_length=15, choices=TypeMouvement.choices)
+    quantite = models.DecimalField(
+        "quantité (signée)", max_digits=12, decimal_places=2,
+        help_text="Positive pour une entrée, négative pour une sortie.",
+    )
+    stock_avant = models.DecimalField("stock avant", max_digits=12, decimal_places=2)
+    stock_apres = models.DecimalField("stock après", max_digits=12, decimal_places=2)
+    prix_achat_unitaire = models.PositiveIntegerField(
+        "prix d'achat unitaire du lot (XAF)", null=True, blank=True,
+    )
+    motif = models.CharField("motif", max_length=255, blank=True, default="")
+    auteur = models.ForeignKey(
+        "comptes.Utilisateur", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="mouvements_stock",
+    )
+    cree_le = models.DateTimeField("créé le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "mouvement de stock"
+        verbose_name_plural = "mouvements de stock"
+        ordering = ["-cree_le"]
+
+    def __str__(self):
+        return f"{self.get_type_display()} {self.quantite} × {self.consommable.nom}"
