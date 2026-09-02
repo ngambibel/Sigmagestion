@@ -102,7 +102,7 @@ Tu dois voir une réponse JSON du type `{"base": "ok", "redis": "ok"}`.
 
 ---
 
-## Étape 0.4 — Modèle Utilisateur + authentification JWT `[~]`
+## Étape 0.4 — Modèle Utilisateur + authentification JWT `[x]`
 
 🎯 **Objectif** : on peut créer un utilisateur et obtenir un token.
 
@@ -126,7 +126,7 @@ docker compose exec web python manage.py createsuperuser
 
 ---
 
-## Étape 0.5 — Frontend React + Vite + Tailwind qui démarre `[ ]`
+## Étape 0.5 — Frontend React + Vite + Tailwind qui démarre `[~]`
 
 🎯 **Objectif** : le front s'affiche sur `http://localhost:5173` avec le design de base.
 

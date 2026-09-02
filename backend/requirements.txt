@@ -11,6 +11,9 @@ argon2-cffi==23.1.0
 # === Documentation API ===
 drf-spectacular==0.28.0
 
+# === CORS (front ↔ back) ===
+django-cors-headers==4.6.0
+
 # === Cache / broker ===
 redis==5.2.1
 

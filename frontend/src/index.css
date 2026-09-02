@@ -1,0 +1,23 @@
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/public-sans";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: theme("fontFamily.sans");
+  }
+  body {
+    @apply bg-papier text-encre;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: theme("fontFamily.display");
+  }
+  /* Les montants s'alignent verticalement (convention comptable) */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
