@@ -193,6 +193,10 @@ export const api = {
   listerServices: () => requete<Service[]>("/services/"),
   creerService: (donnees: Partial<Service>) =>
     requete<Service>("/services/", { method: "POST", body: JSON.stringify(donnees) }),
+  modifierService: (id: number, donnees: Partial<Service>) =>
+    requete<Service>(`/services/${id}/`, { method: "PATCH", body: JSON.stringify(donnees) }),
+  supprimerService: (id: number) =>
+    requete<null>(`/services/${id}/`, { method: "DELETE" }),
 
   // --- Stocks ---
   listerConsommables: () => requete<Consommable[]>("/consommables/"),

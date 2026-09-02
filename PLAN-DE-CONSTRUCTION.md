@@ -208,7 +208,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 1.3 — Assistant d'installation en 3 écrans `[~]`
+## Étape 1.3 — Assistant d'installation en 3 écrans `[x]`
 
 > Découpée en **1.3a** (back : modèles Service/Consommable + catalogue de démarrage — ✅ validé) et **1.3b** (front : assistant 3 écrans — en cours).
 
