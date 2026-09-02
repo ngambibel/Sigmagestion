@@ -126,7 +126,7 @@ docker compose exec web python manage.py createsuperuser
 
 ---
 
-## Étape 0.5 — Frontend React + Vite + Tailwind qui démarre `[~]`
+## Étape 0.5 — Frontend React + Vite + Tailwind qui démarre `[x]`
 
 🎯 **Objectif** : le front s'affiche sur `http://localhost:5173` avec le design de base.
 
@@ -149,7 +149,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 0.6 — Connexion bout-en-bout (front ↔ back) `[ ]`
+## Étape 0.6 — Connexion bout-en-bout (front ↔ back) `[~]`
 
 🎯 **Objectif** : le « hello world authentifié » — je me connecte depuis le front et je vois mon profil.
 
