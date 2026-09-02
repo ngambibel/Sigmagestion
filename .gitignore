@@ -1,0 +1,34 @@
+# === Secrets / environnement ===
+.env
+*.env
+!.env.example
+
+# === Python / Django ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.sqlite3
+staticfiles/
+media/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# === Node / Frontend ===
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+coverage/
+
+# === Éditeurs / OS ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
