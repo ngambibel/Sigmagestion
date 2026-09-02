@@ -44,6 +44,17 @@ class ConsommableIsolationTests(APITestCase):
         reponse = self.client.get(f"/api/v1/consommables/{self.conso_b.id}/")
         self.assertEqual(reponse.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_endpoint_alertes(self):
+        self.client.force_authenticate(self.proprio_b)
+        # conso_b : 500 > seuil 100 → pas d'alerte
+        reponse = self.client.get("/api/v1/consommables/alertes/")
+        self.assertEqual(reponse.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(reponse.data), 0)
+        self.conso_b.qte_stock = 50
+        self.conso_b.save()
+        reponse = self.client.get("/api/v1/consommables/alertes/")
+        self.assertEqual(len(reponse.data), 1)
+
     def test_indicateur_sous_seuil(self):
         self.client.force_authenticate(self.proprio_b)
         # 500 > 100 → pas sous seuil

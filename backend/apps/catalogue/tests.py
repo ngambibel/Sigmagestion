@@ -64,3 +64,80 @@ class ServiceIsolationTests(APITestCase):
         self.client.force_authenticate(employe)
         reponse = self.client.post("/api/v1/services/", {"nom": "X", "prix": 10})
         self.assertEqual(reponse.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class NomenclatureTests(APITestCase):
+    def setUp(self):
+        from apps.stocks.models import Consommable
+
+        self.proprio = Utilisateur.objects.create_user(
+            telephone="+237600000030", nom="P", password="MotDePasseP1", role=Role.PROPRIETAIRE,
+        )
+        self.sec = Secretariat.objects.create(nom="S", code="SNO01", proprietaire=self.proprio)
+        self.proprio.secretariat = self.sec
+        self.proprio.save(update_fields=["secretariat"])
+        self.client.force_authenticate(self.proprio)
+
+        self.service = Service.objects.create(
+            secretariat=self.sec, nom="Impression N&B", prix=50,
+            consomme_stock=True, actif=False,
+        )
+        self.papier = Consommable.objects.create(
+            secretariat=self.sec, nom="Papier A4", unite_mesure="feuille",
+            prix_achat=7, qte_stock=1000, seuil_alerte=100,
+        )
+        self.toner = Consommable.objects.create(
+            secretariat=self.sec, nom="Toner noir", unite_mesure="cartouche",
+            prix_achat=25000, qte_stock=3, seuil_alerte=1,
+        )
+
+    def test_definir_puis_lire_nomenclature(self):
+        reponse = self.client.put(
+            f"/api/v1/services/{self.service.id}/nomenclature/",
+            [
+                {"consommable": self.papier.id, "qte_par_unite": "1"},
+                {"consommable": self.toner.id, "qte_par_unite": "0.004"},
+            ],
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(reponse.data), 2)
+
+        lecture = self.client.get(f"/api/v1/services/{self.service.id}/nomenclature/")
+        self.assertEqual(len(lecture.data), 2)
+
+    def test_nomenclature_refuse_consommable_autre_secretariat(self):
+        from apps.stocks.models import Consommable
+
+        autre = Utilisateur.objects.create_user(
+            telephone="+237600000031", nom="Q", password="MotDePasseQ1", role=Role.PROPRIETAIRE,
+        )
+        sec_autre = Secretariat.objects.create(nom="Autre", code="AUT01", proprietaire=autre)
+        conso_autre = Consommable.objects.create(
+            secretariat=sec_autre, nom="Vol", unite_mesure="feuille", prix_achat=1,
+        )
+        reponse = self.client.put(
+            f"/api/v1/services/{self.service.id}/nomenclature/",
+            [{"consommable": conso_autre.id, "qte_par_unite": "1"}],
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_rg06_activation_impossible_sans_nomenclature(self):
+        reponse = self.client.patch(
+            f"/api/v1/services/{self.service.id}/", {"actif": True}, format="json"
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_rg06_activation_possible_avec_nomenclature(self):
+        self.client.put(
+            f"/api/v1/services/{self.service.id}/nomenclature/",
+            [{"consommable": self.papier.id, "qte_par_unite": "1"}],
+            format="json",
+        )
+        reponse = self.client.patch(
+            f"/api/v1/services/{self.service.id}/", {"actif": True}, format="json"
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_200_OK)
+        self.assertTrue(reponse.data["actif"])
+        self.assertTrue(reponse.data["activable"])

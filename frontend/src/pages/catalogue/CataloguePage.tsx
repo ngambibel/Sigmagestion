@@ -4,6 +4,7 @@ import { api, type Service } from "../../lib/api";
 import { EnTetePage, EtatVide } from "../../components/layout/EnTetePage";
 import { Button } from "../../components/ui/Button";
 import { ServiceFormModal } from "../../features/catalogue/ServiceFormModal";
+import { NomenclatureModal } from "../../features/catalogue/NomenclatureModal";
 
 export default function CataloguePage() {
   const services = useQuery({ queryKey: ["services"], queryFn: api.listerServices });
@@ -11,6 +12,7 @@ export default function CataloguePage() {
 
   // null fermé ; {service|null} ouvert (null = création)
   const [edition, setEdition] = useState<{ service: Service | null } | null>(null);
+  const [recette, setRecette] = useState<Service | null>(null);
 
   const suppression = useMutation({
     mutationFn: (id: number) => api.supprimerService(id),
@@ -46,6 +48,11 @@ export default function CataloguePage() {
                       inactif
                     </span>
                   )}
+                  {s.consomme_stock && !s.activable && (
+                    <span className="rounded bg-jaune-clair px-1.5 py-0.5 text-xs text-jaune">
+                      recette manquante
+                    </span>
+                  )}
                 </p>
                 <p className="text-sm text-encre-pale">
                   {s.categorie || "—"} · /{s.unite_facturation}
@@ -54,6 +61,14 @@ export default function CataloguePage() {
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="tabular text-lg">{s.prix.toLocaleString("fr-FR")} XAF</span>
+                {s.consomme_stock && (
+                  <button
+                    onClick={() => setRecette(s)}
+                    className="text-sm font-medium text-cyan underline"
+                  >
+                    Recette
+                  </button>
+                )}
                 <button
                   onClick={() => setEdition({ service: s })}
                   className="text-sm font-medium text-cyan underline"
@@ -75,6 +90,9 @@ export default function CataloguePage() {
 
       {edition && (
         <ServiceFormModal service={edition.service} onFermer={() => setEdition(null)} />
+      )}
+      {recette && (
+        <NomenclatureModal service={recette} onFermer={() => setRecette(null)} />
       )}
     </div>
   );

@@ -40,3 +40,36 @@ class Service(models.Model):
 
     def __str__(self):
         return f"{self.nom} — {self.prix} XAF"
+
+    @property
+    def activable(self) -> bool:
+        """RG-06 : un service consommateur doit avoir une nomenclature pour être activable."""
+        if not self.consomme_stock:
+            return True
+        return self.lignes_nomenclature.exists()
+
+
+class NomenclatureService(models.Model):
+    """Recette d'un service : quel consommable, en quelle quantité par unité vendue.
+
+    Exemple : « Impression N&B » → 1 feuille A4 + 0,004 cartouche toner noir.
+    La quantité accepte 4 décimales pour modéliser le rendement des toners.
+    """
+
+    service = models.ForeignKey(
+        Service, on_delete=models.CASCADE, related_name="lignes_nomenclature",
+    )
+    consommable = models.ForeignKey(
+        "stocks.Consommable", on_delete=models.PROTECT, related_name="nomenclatures",
+    )
+    qte_par_unite = models.DecimalField(
+        "quantité par unité vendue", max_digits=10, decimal_places=4,
+    )
+
+    class Meta:
+        verbose_name = "ligne de nomenclature"
+        verbose_name_plural = "nomenclature"
+        unique_together = ("service", "consommable")
+
+    def __str__(self):
+        return f"{self.service.nom} : {self.qte_par_unite} × {self.consommable.nom}"

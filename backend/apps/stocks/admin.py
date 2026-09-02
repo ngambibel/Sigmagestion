@@ -7,4 +7,4 @@ from .models import Consommable
 class ConsommableAdmin(admin.ModelAdmin):
     list_display = ("nom", "secretariat", "qte_stock", "unite_mesure", "seuil_alerte", "actif")
     list_filter = ("actif",)
-    search_fields = ("nom",)
+    search_fields = ("nom",)  # requis par l'autocomplete de la nomenclature

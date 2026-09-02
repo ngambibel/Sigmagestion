@@ -113,6 +113,23 @@ export interface paths {
         patch: operations["v1_consommables_partial_update"];
         trace?: never;
     };
+    "/api/v1/consommables/alertes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /consommables/alertes/ — les consommables actifs sous leur seuil. */
+        get: operations["v1_consommables_alertes_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/moi/": {
         parameters: {
             query?: never;
@@ -286,6 +303,24 @@ export interface paths {
         head?: never;
         /** @description CRUD des services, cloisonné au secrétariat actif. */
         patch: operations["v1_services_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/services/{id}/nomenclature/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET/PUT /services/{id}/nomenclature/ — recette du service. */
+        get: operations["v1_services_nomenclature_retrieve"];
+        /** @description GET/PUT /services/{id}/nomenclature/ — recette du service. */
+        put: operations["v1_services_nomenclature_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -482,6 +517,7 @@ export interface components {
             icone?: string;
             /** Ordre d'affichage */
             ordre?: number;
+            readonly activable?: boolean;
         };
         /**
          * @description * `super_admin` - Super-administrateur
@@ -534,6 +570,7 @@ export interface components {
             icone?: string;
             /** Ordre d'affichage */
             ordre?: number;
+            readonly activable: boolean;
         };
         TokenRefresh: {
             readonly access: string;
@@ -781,6 +818,25 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["PatchedConsommable"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
+    v1_consommables_alertes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -1166,6 +1222,56 @@ export interface operations {
                 "application/json": components["schemas"]["PatchedService"];
                 "application/x-www-form-urlencoded": components["schemas"]["PatchedService"];
                 "multipart/form-data": components["schemas"]["PatchedService"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_services_nomenclature_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_services_nomenclature_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Service"];
+                "application/x-www-form-urlencoded": components["schemas"]["Service"];
+                "multipart/form-data": components["schemas"]["Service"];
             };
         };
         responses: {

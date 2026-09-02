@@ -131,6 +131,15 @@ export interface Service {
   couleur: string;
   icone: string;
   ordre: number;
+  activable: boolean;
+}
+
+export interface NomenclatureLigne {
+  id: number;
+  consommable: number;
+  consommable_nom: string;
+  unite_mesure: string;
+  qte_par_unite: string;
 }
 
 export interface Consommable {
@@ -197,6 +206,16 @@ export const api = {
     requete<Service>(`/services/${id}/`, { method: "PATCH", body: JSON.stringify(donnees) }),
   supprimerService: (id: number) =>
     requete<null>(`/services/${id}/`, { method: "DELETE" }),
+  getNomenclature: (serviceId: number) =>
+    requete<NomenclatureLigne[]>(`/services/${serviceId}/nomenclature/`),
+  putNomenclature: (
+    serviceId: number,
+    lignes: { consommable: number; qte_par_unite: number }[],
+  ) =>
+    requete<NomenclatureLigne[]>(`/services/${serviceId}/nomenclature/`, {
+      method: "PUT",
+      body: JSON.stringify(lignes),
+    }),
 
   // --- Stocks ---
   listerConsommables: () => requete<Consommable[]>("/consommables/"),
