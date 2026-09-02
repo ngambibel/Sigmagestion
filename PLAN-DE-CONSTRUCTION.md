@@ -80,7 +80,7 @@ Tu dois voir `db` et `redis` avec le statut **running / healthy**.
 
 ---
 
-## Étape 0.3 — Projet Django + DRF qui démarre `[~]`
+## Étape 0.3 — Projet Django + DRF qui démarre `[x]`
 
 🎯 **Objectif** : le backend Django répond sur `http://localhost:8000`.
 
@@ -102,7 +102,7 @@ Tu dois voir une réponse JSON du type `{"base": "ok", "redis": "ok"}`.
 
 ---
 
-## Étape 0.4 — Modèle Utilisateur + authentification JWT `[ ]`
+## Étape 0.4 — Modèle Utilisateur + authentification JWT `[~]`
 
 🎯 **Objectif** : on peut créer un utilisateur et obtenir un token.
 

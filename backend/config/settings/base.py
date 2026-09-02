@@ -26,10 +26,13 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
     "core",
+    "apps.comptes",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -82,6 +85,17 @@ CACHES = {
     },
 }
 
+# --- Modèle utilisateur personnalisé ---
+AUTH_USER_MODEL = "comptes.Utilisateur"
+
+# --- Hachage des mots de passe (Argon2 en tête) ---
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
+
 # --- Validation des mots de passe ---
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -107,4 +121,32 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# --- JWT (SimpleJWT) ---
+from datetime import timedelta  # noqa: E402
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
+    # Session longue durée : les employés se reconnectent chaque matin.
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
+# --- Documentation OpenAPI (drf-spectacular) ---
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API SigmaGestion",
+    "DESCRIPTION": "API de gestion de secrétariat bureautique.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
