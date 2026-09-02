@@ -66,6 +66,15 @@ class Utilisateur(AbstractUser):
     code_pin_hash = models.CharField(
         "empreinte du code PIN", max_length=128, blank=True, default="",
     )
+    secretariat = models.ForeignKey(
+        "secretariats.Secretariat",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="membres",
+        verbose_name="secrétariat actif",
+        help_text="Secrétariat de rattachement (employés/gérants) ou secrétariat courant.",
+    )
 
     USERNAME_FIELD = "telephone"
     REQUIRED_FIELDS = ["nom"]

@@ -116,6 +116,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/secretariats/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        get: operations["v1_secretariats_list"];
+        put?: never;
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        post: operations["v1_secretariats_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/secretariats/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        get: operations["v1_secretariats_retrieve"];
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        put: operations["v1_secretariats_update"];
+        post?: never;
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        delete: operations["v1_secretariats_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description CRUD des secrétariats.
+         *
+         *     Isolation : un utilisateur ne voit que les secrétariats qu'il possède
+         *     ou auquel il est rattaché. Un accès à un autre secrétariat donne un 404
+         *     (il est simplement hors du queryset).
+         */
+        patch: operations["v1_secretariats_partial_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -215,6 +289,27 @@ export interface components {
              */
             readonly date_joined?: string;
         };
+        PatchedSecretariat: {
+            readonly id?: number;
+            nom?: string;
+            /** @description Préfixe court des reçus, ex. EBO01. */
+            readonly code?: string;
+            ville?: string;
+            quartier?: string;
+            /**
+             * Téléphone affiché
+             * @description Numéro imprimé sur les reçus.
+             */
+            telephone?: string;
+            devise?: string;
+            /** Propriétaire */
+            readonly proprietaire?: number;
+            /**
+             * Créé le
+             * Format: date-time
+             */
+            readonly cree_le?: string;
+        };
         /**
          * @description * `super_admin` - Super-administrateur
          *     * `proprietaire` - Propriétaire
@@ -223,6 +318,27 @@ export interface components {
          * @enum {string}
          */
         RoleEnum: "super_admin" | "proprietaire" | "gerant" | "employe";
+        Secretariat: {
+            readonly id: number;
+            nom: string;
+            /** @description Préfixe court des reçus, ex. EBO01. */
+            readonly code: string;
+            ville?: string;
+            quartier?: string;
+            /**
+             * Téléphone affiché
+             * @description Numéro imprimé sur les reçus.
+             */
+            telephone?: string;
+            devise?: string;
+            /** Propriétaire */
+            readonly proprietaire: number;
+            /**
+             * Créé le
+             * Format: date-time
+             */
+            readonly cree_le: string;
+        };
         TokenRefresh: {
             readonly access: string;
             refresh: string;
@@ -413,6 +529,145 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    v1_secretariats_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secretariat"][];
+                };
+            };
+        };
+    };
+    v1_secretariats_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Secretariat"];
+                "application/x-www-form-urlencoded": components["schemas"]["Secretariat"];
+                "multipart/form-data": components["schemas"]["Secretariat"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secretariat"];
+                };
+            };
+        };
+    };
+    v1_secretariats_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secretariat"];
+                };
+            };
+        };
+    };
+    v1_secretariats_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Secretariat"];
+                "application/x-www-form-urlencoded": components["schemas"]["Secretariat"];
+                "multipart/form-data": components["schemas"]["Secretariat"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secretariat"];
+                };
+            };
+        };
+    };
+    v1_secretariats_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    v1_secretariats_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSecretariat"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedSecretariat"];
+                "multipart/form-data": components["schemas"]["PatchedSecretariat"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Secretariat"];
+                };
             };
         };
     };
