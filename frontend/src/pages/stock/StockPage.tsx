@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Consommable } from "../../lib/api";
 import { EnTetePage, EtatVide } from "../../components/layout/EnTetePage";
 import { Button } from "../../components/ui/Button";
 import { ConsommableFormModal } from "../../features/stocks/ConsommableFormModal";
 import { EntreeStockModal } from "../../features/stocks/EntreeStockModal";
+import { AjustementModal } from "../../features/stocks/AjustementModal";
 import { useAuthStore } from "../../stores/auth";
 
 function formaterQte(valeur: string) {
@@ -17,8 +19,10 @@ export default function StockPage() {
   const queryClient = useQueryClient();
   const [edition, setEdition] = useState<{ consommable: Consommable | null } | null>(null);
   const [entree, setEntree] = useState<Consommable | null>(null);
+  const [ajustement, setAjustement] = useState<Consommable | null>(null);
   const role = useAuthStore((s) => s.utilisateur?.role);
   const peutReappro = role === "proprietaire" || role === "gerant" || role === "super_admin";
+  const estProprietaire = role === "proprietaire" || role === "super_admin";
 
   const suppression = useMutation({
     mutationFn: (id: number) => api.supprimerConsommable(id),
@@ -35,7 +39,12 @@ export default function StockPage() {
     <div>
       <div className="flex items-start justify-between">
         <EnTetePage titre="Stock" sousTitre="Vos consommables et vos seuils d'alerte." />
-        <Button onClick={() => setEdition({ consommable: null })}>+ Ajouter</Button>
+        <div className="flex items-center gap-3">
+          {peutReappro && (
+            <Link to="/mouvements" className="text-sm font-medium text-cyan underline">Journal</Link>
+          )}
+          <Button onClick={() => setEdition({ consommable: null })}>+ Ajouter</Button>
+        </div>
       </div>
 
       {consommables.isLoading ? (
@@ -73,6 +82,11 @@ export default function StockPage() {
                     Entrée
                   </button>
                 )}
+                {estProprietaire && (
+                  <button onClick={() => setAjustement(c)} className="text-sm font-medium text-jaune underline">
+                    Ajuster
+                  </button>
+                )}
                 <button onClick={() => setEdition({ consommable: c })} className="text-sm font-medium text-cyan underline">
                   Modifier
                 </button>
@@ -90,6 +104,9 @@ export default function StockPage() {
       )}
       {entree && (
         <EntreeStockModal consommable={entree} onFermer={() => setEntree(null)} />
+      )}
+      {ajustement && (
+        <AjustementModal consommable={ajustement} onFermer={() => setAjustement(null)} />
       )}
     </div>
   );

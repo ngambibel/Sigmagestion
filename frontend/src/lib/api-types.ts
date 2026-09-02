@@ -113,6 +113,23 @@ export interface paths {
         patch: operations["v1_consommables_partial_update"];
         trace?: never;
     };
+    "/api/v1/consommables/{id}/ajustement/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /consommables/{id}/ajustement/ — correction avec motif obligatoire. */
+        post: operations["v1_consommables_ajustement_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/consommables/{id}/entree-stock/": {
         parameters: {
             query?: never;
@@ -164,6 +181,40 @@ export interface paths {
         head?: never;
         /** @description GET/PATCH /moi/ — profil de l'utilisateur courant. */
         patch: operations["v1_moi_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/mouvements-stock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /mouvements-stock/ — journal des mouvements, filtrable (gérant+). */
+        get: operations["v1_mouvements_stock_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mouvements-stock/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /mouvements-stock/ — journal des mouvements, filtrable (gérant+). */
+        get: operations["v1_mouvements_stock_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/onboarding/modeles/": {
@@ -432,6 +483,36 @@ export interface components {
              */
             readonly date_joined: string;
         };
+        MouvementStock: {
+            readonly id: number;
+            consommable: number;
+            readonly consommable_nom: string;
+            type: components["schemas"]["TypeEnum"];
+            readonly type_libelle: string;
+            /**
+             * Quantité (signée)
+             * Format: decimal
+             * @description Positive pour une entrée, négative pour une sortie.
+             */
+            quantite: string;
+            /** Format: decimal */
+            stock_avant: string;
+            /**
+             * Stock après
+             * Format: decimal
+             */
+            stock_apres: string;
+            /** Prix d'achat unitaire du lot (XAF) */
+            prix_achat_unitaire?: number | null;
+            motif?: string;
+            /** @default  */
+            readonly auteur_nom: string;
+            /**
+             * Créé le
+             * Format: date-time
+             */
+            readonly cree_le: string;
+        };
         PatchedConsommable: {
             readonly id?: number;
             nom?: string;
@@ -593,6 +674,14 @@ export interface components {
             readonly access: string;
             refresh: string;
         };
+        /**
+         * @description * `entree` - Entrée (réapprovisionnement)
+         *     * `sortie_vente` - Sortie (vente)
+         *     * `ajustement` - Ajustement
+         *     * `annulation` - Annulation
+         * @enum {string}
+         */
+        TypeEnum: "entree" | "sortie_vente" | "ajustement" | "annulation";
         /**
          * @description * `page` - La page
          *     * `document` - Le document
@@ -846,6 +935,34 @@ export interface operations {
             };
         };
     };
+    v1_consommables_ajustement_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Consommable"];
+                "application/x-www-form-urlencoded": components["schemas"]["Consommable"];
+                "multipart/form-data": components["schemas"]["Consommable"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
     v1_consommables_entree_stock_create: {
         parameters: {
             query?: never;
@@ -958,6 +1075,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Moi"];
+                };
+            };
+        };
+    };
+    v1_mouvements_stock_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MouvementStock"][];
+                };
+            };
+        };
+    };
+    v1_mouvements_stock_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this mouvement de stock. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MouvementStock"];
                 };
             };
         };

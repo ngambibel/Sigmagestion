@@ -7,13 +7,14 @@ from rest_framework.response import Response
 from core.permissions import EstGerantOuPlus, EstProprietaire
 from core.tenancy import TenantQuerySetMixin
 
-from .models import Consommable
+from .models import Consommable, MouvementStock, TypeMouvement
 from .serializers import (
+    AjustementSerializer,
     ConsommableSerializer,
     EntreeStockSerializer,
     MouvementStockSerializer,
 )
-from .services import enregistrer_entree_stock
+from .services import enregistrer_ajustement, enregistrer_entree_stock
 
 
 class ConsommableViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
@@ -23,11 +24,27 @@ class ConsommableViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
     queryset = Consommable.objects.all()
 
     def get_permissions(self):
-        if self.action in ("create", "update", "partial_update", "destroy"):
+        if self.action in ("create", "update", "partial_update", "destroy", "ajustement"):
             return [EstProprietaire()]
         if self.action == "entree_stock":
             return [EstGerantOuPlus()]  # gérant autorisé à réapprovisionner
         return [IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)  # rattache au secrétariat + sauvegarde
+        # Trace du stock initial déclaré, pour la cohérence du journal.
+        consommable = serializer.instance
+        if consommable.qte_stock and consommable.qte_stock > 0:
+            MouvementStock.objects.create(
+                secretariat=consommable.secretariat,
+                consommable=consommable,
+                type=TypeMouvement.AJUSTEMENT,
+                quantite=consommable.qte_stock,
+                stock_avant=0,
+                stock_apres=consommable.qte_stock,
+                motif="Stock initial",
+                auteur=self.request.user,
+            )
 
     @action(detail=False, methods=["get"])
     def alertes(self, request):
@@ -58,3 +75,45 @@ class ConsommableViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=["post"])
+    def ajustement(self, request, pk=None):
+        """POST /consommables/{id}/ajustement/ — correction avec motif obligatoire."""
+        consommable = self.get_object()
+        ajust = AjustementSerializer(data=request.data)
+        ajust.is_valid(raise_exception=True)
+        try:
+            mouvement = enregistrer_ajustement(
+                consommable=consommable,
+                quantite_delta=ajust.validated_data["quantite_delta"],
+                motif=ajust.validated_data["motif"],
+                auteur=request.user,
+            )
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        consommable.refresh_from_db()
+        return Response(
+            {
+                "mouvement": MouvementStockSerializer(mouvement).data,
+                "consommable": ConsommableSerializer(consommable).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class MouvementStockViewSet(TenantQuerySetMixin, viewsets.ReadOnlyModelViewSet):
+    """GET /mouvements-stock/ — journal des mouvements, filtrable (gérant+)."""
+
+    serializer_class = MouvementStockSerializer
+    queryset = MouvementStock.objects.select_related("consommable", "auteur").all()
+    permission_classes = [EstGerantOuPlus]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        consommable = self.request.query_params.get("consommable")
+        type_mvt = self.request.query_params.get("type")
+        if consommable:
+            queryset = queryset.filter(consommable_id=consommable)
+        if type_mvt:
+            queryset = queryset.filter(type=type_mvt)
+        return queryset

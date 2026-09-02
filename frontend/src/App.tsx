@@ -10,6 +10,7 @@ import InstallationPage from "./pages/InstallationPage";
 const CaissePage = lazy(() => import("./pages/caisse/CaissePage"));
 const StockPage = lazy(() => import("./pages/stock/StockPage"));
 const BilanPage = lazy(() => import("./pages/bilan/BilanPage"));
+const MouvementsPage = lazy(() => import("./pages/stock/MouvementsPage"));
 const CataloguePage = lazy(() => import("./pages/catalogue/CataloguePage"));
 const ParametresPage = lazy(() => import("./pages/parametres/ParametresPage"));
 
@@ -26,6 +27,14 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route index element={<CaissePage />} />
             <Route path="stock" element={<StockPage />} />
+            <Route
+              path="mouvements"
+              element={
+                <RequireRole roles={["proprietaire", "gerant", "super_admin"]}>
+                  <MouvementsPage />
+                </RequireRole>
+              }
+            />
             <Route
               path="bilan"
               element={

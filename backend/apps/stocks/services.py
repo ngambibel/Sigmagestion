@@ -64,3 +64,38 @@ def enregistrer_entree_stock(
         motif=motif,
         auteur=auteur,
     )
+
+
+@transaction.atomic
+def enregistrer_ajustement(
+    *, consommable: Consommable, quantite_delta: Decimal, motif: str, auteur=None,
+) -> MouvementStock:
+    """Corrige le stock (casse, vol, erreur). Le motif est obligatoire.
+
+    `quantite_delta` est signé (négatif pour une perte). Ne touche pas au prix d'achat.
+    """
+    quantite_delta = Decimal(quantite_delta)
+    if quantite_delta == 0:
+        raise ValueError("L'ajustement ne peut pas être nul.")
+    if not motif or not motif.strip():
+        raise ValueError("Un motif est obligatoire pour un ajustement.")
+
+    consommable = Consommable.objects.select_for_update().get(pk=consommable.pk)
+    stock_avant = consommable.qte_stock
+    stock_apres = stock_avant + quantite_delta
+    if stock_apres < 0:
+        raise ValueError("L'ajustement rendrait le stock négatif.")
+
+    consommable.qte_stock = stock_apres
+    consommable.save(update_fields=["qte_stock", "modifie_le"])
+
+    return MouvementStock.objects.create(
+        secretariat=consommable.secretariat,
+        consommable=consommable,
+        type=TypeMouvement.AJUSTEMENT,
+        quantite=quantite_delta,
+        stock_avant=stock_avant,
+        stock_apres=stock_apres,
+        motif=motif.strip(),
+        auteur=auteur,
+    )

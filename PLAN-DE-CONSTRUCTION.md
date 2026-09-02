@@ -301,7 +301,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 2.4 — Entrées de stock avec CUMP `[~]`
+## Étape 2.4 — Entrées de stock avec CUMP `[x]`
 
 🎯 **Objectif** : réapprovisionner et calculer automatiquement le coût moyen pondéré.
 
@@ -318,7 +318,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 2.5 — Ajustements et journal des mouvements `[ ]`
+## Étape 2.5 — Ajustements et journal des mouvements `[~]`
 
 🎯 **Objectif** : corriger un stock (casse, vol, erreur) et tout tracer.
 

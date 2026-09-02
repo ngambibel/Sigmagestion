@@ -127,3 +127,82 @@ class EntreeStockCumpTests(APITestCase):
         self.client.force_authenticate(autre)
         # conso appartient à self.sec → 404 pour l'autre propriétaire
         self.assertEqual(self._entree("50", 500).status_code, status.HTTP_404_NOT_FOUND)
+
+
+class AjustementEtJournalTests(APITestCase):
+    def setUp(self):
+        self.proprio = Utilisateur.objects.create_user(
+            telephone="+237600000050", nom="P", password="MotDePasseP1", role=Role.PROPRIETAIRE,
+        )
+        self.sec = Secretariat.objects.create(nom="S", code="SAJ01", proprietaire=self.proprio)
+        self.proprio.secretariat = self.sec
+        self.proprio.save(update_fields=["secretariat"])
+        self.client.force_authenticate(self.proprio)
+        # Création via l'API → génère un mouvement "Stock initial"
+        self.conso = self.client.post(
+            "/api/v1/consommables/",
+            {"nom": "Papier A4", "unite_mesure": "feuille", "prix_achat": 7,
+             "qte_stock": 500, "seuil_alerte": 100},
+            format="json",
+        ).data
+
+    def test_ajustement_negatif_avec_motif(self):
+        reponse = self.client.post(
+            f"/api/v1/consommables/{self.conso['id']}/ajustement/",
+            {"quantite_delta": "-10", "motif": "10 feuilles abîmées"},
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(float(reponse.data["consommable"]["qte_stock"]), 490.0)
+
+    def test_ajustement_sans_motif_refuse(self):
+        reponse = self.client.post(
+            f"/api/v1/consommables/{self.conso['id']}/ajustement/",
+            {"quantite_delta": "-10", "motif": "   "},
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_ajustement_stock_negatif_refuse(self):
+        reponse = self.client.post(
+            f"/api/v1/consommables/{self.conso['id']}/ajustement/",
+            {"quantite_delta": "-999", "motif": "erreur"},
+            format="json",
+        )
+        self.assertEqual(reponse.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_journal_liste_mouvements(self):
+        # Stock initial (1) + un ajustement (1) = 2 mouvements
+        self.client.post(
+            f"/api/v1/consommables/{self.conso['id']}/ajustement/",
+            {"quantite_delta": "-10", "motif": "casse"}, format="json",
+        )
+        reponse = self.client.get("/api/v1/mouvements-stock/")
+        self.assertEqual(reponse.status_code, status.HTTP_200_OK)
+        resultats = reponse.data["results"] if isinstance(reponse.data, dict) else reponse.data
+        self.assertEqual(len(resultats), 2)
+
+    def test_journal_interdit_a_employe(self):
+        employe = Utilisateur.objects.create_user(
+            telephone="+237600000051", nom="E", password="MotDePasseE1",
+            role=Role.EMPLOYE, secretariat=self.sec,
+        )
+        self.client.force_authenticate(employe)
+        reponse = self.client.get("/api/v1/mouvements-stock/")
+        self.assertEqual(reponse.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_recalculer_stocks(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        from apps.stocks.models import Consommable
+
+        # On casse volontairement la valeur dénormalisée
+        c = Consommable.objects.get(id=self.conso["id"])
+        c.qte_stock = 999
+        c.save(update_fields=["qte_stock"])
+        call_command("recalculer_stocks", stdout=StringIO())
+        c.refresh_from_db()
+        # Le seul mouvement est le stock initial de 500
+        self.assertEqual(float(c.qte_stock), 500.0)

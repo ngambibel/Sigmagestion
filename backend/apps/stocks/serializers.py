@@ -29,6 +29,23 @@ class EntreeStockSerializer(serializers.Serializer):
     motif = serializers.CharField(required=False, allow_blank=True, default="")
 
 
+class AjustementSerializer(serializers.Serializer):
+    """Correction de stock : delta signé + motif obligatoire."""
+
+    quantite_delta = serializers.DecimalField(max_digits=12, decimal_places=2)
+    motif = serializers.CharField(max_length=255)
+
+    def validate_quantite_delta(self, valeur):
+        if valeur == 0:
+            raise serializers.ValidationError("L'ajustement ne peut pas être nul.")
+        return valeur
+
+    def validate_motif(self, valeur):
+        if not valeur.strip():
+            raise serializers.ValidationError("Le motif est obligatoire.")
+        return valeur
+
+
 class MouvementStockSerializer(serializers.ModelSerializer):
     consommable_nom = serializers.CharField(source="consommable.nom", read_only=True)
     type_libelle = serializers.CharField(source="get_type_display", read_only=True)

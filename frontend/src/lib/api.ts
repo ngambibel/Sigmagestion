@@ -155,6 +155,21 @@ export interface Consommable {
   sous_seuil: boolean;
 }
 
+export interface MouvementStock {
+  id: number;
+  consommable: number;
+  consommable_nom: string;
+  type: string;
+  type_libelle: string;
+  quantite: string;
+  stock_avant: string;
+  stock_apres: string;
+  prix_achat_unitaire: number | null;
+  motif: string;
+  auteur_nom: string;
+  cree_le: string;
+}
+
 export const api = {
   sante: () => requete<Sante>("/sante/", { publique: true }),
 
@@ -239,4 +254,18 @@ export const api = {
       `/consommables/${id}/entree-stock/`,
       { method: "POST", body: JSON.stringify(donnees) },
     ),
+  ajustementStock: (id: number, donnees: { quantite_delta: number; motif: string }) =>
+    requete<{ mouvement: unknown; consommable: Consommable }>(
+      `/consommables/${id}/ajustement/`,
+      { method: "POST", body: JSON.stringify(donnees) },
+    ),
+
+  // --- Journal des mouvements ---
+  listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
+    const params = new URLSearchParams();
+    if (filtres?.consommable) params.set("consommable", String(filtres.consommable));
+    if (filtres?.type) params.set("type", filtres.type);
+    const suffixe = params.toString() ? `?${params}` : "";
+    return requete<MouvementStock[]>(`/mouvements-stock/${suffixe}`);
+  },
 };
