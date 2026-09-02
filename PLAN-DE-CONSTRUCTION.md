@@ -228,7 +228,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 1.4 — Coquille applicative (navigation, routes protégées) `[ ]`
+## Étape 1.4 — Coquille applicative (navigation, routes protégées) `[~]`
 
 🎯 **Objectif** : l'ossature de navigation de l'app est en place.
 

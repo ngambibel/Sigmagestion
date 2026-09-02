@@ -1,54 +1,60 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "./stores/auth";
-import { api } from "./lib/api";
-import { LoginForm } from "./features/auth/LoginForm";
-import { RegisterForm } from "./features/auth/RegisterForm";
-import { Accueil } from "./features/auth/Accueil";
-import { OnboardingWizard } from "./features/onboarding/OnboardingWizard";
+import { lazy } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { RequireAuth, RequireOnboarding, RequireRole } from "./app/guards";
+import { AppShell } from "./components/layout/AppShell";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import InstallationPage from "./pages/InstallationPage";
 
-function EspaceConnecte() {
-  const utilisateur = useAuthStore((s) => s.utilisateur);
-  const queryClient = useQueryClient();
-  const secretariats = useQuery({
-    queryKey: ["secretariats"],
-    queryFn: api.listerSecretariats,
-  });
-
-  if (secretariats.isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-encre-pale">
-        Chargement…
-      </div>
-    );
-  }
-
-  const estProprietaire = utilisateur?.role === "proprietaire";
-  const secretariat = secretariats.data?.[0] ?? null;
-  const doitConfigurer =
-    estProprietaire && (!secretariat || !secretariat.onboarding_termine);
-
-  if (doitConfigurer) {
-    return (
-      <OnboardingWizard
-        secretariatInitial={secretariat}
-        onTermine={() => queryClient.invalidateQueries({ queryKey: ["secretariats"] })}
-      />
-    );
-  }
-
-  return <Accueil secretariat={secretariat} />;
-}
+// Pages chargées paresseusement (découpage de code).
+const CaissePage = lazy(() => import("./pages/caisse/CaissePage"));
+const StockPage = lazy(() => import("./pages/stock/StockPage"));
+const BilanPage = lazy(() => import("./pages/bilan/BilanPage"));
+const CataloguePage = lazy(() => import("./pages/catalogue/CataloguePage"));
+const ParametresPage = lazy(() => import("./pages/parametres/ParametresPage"));
 
 export default function App() {
-  const estConnecte = useAuthStore((s) => s.estConnecte());
-  const [vue, setVue] = useState<"connexion" | "inscription">("connexion");
+  return (
+    <Routes>
+      <Route path="/connexion" element={<LoginPage />} />
+      <Route path="/inscription" element={<RegisterPage />} />
 
-  if (estConnecte) return <EspaceConnecte />;
+      <Route element={<RequireAuth />}>
+        <Route path="/installation" element={<InstallationPage />} />
 
-  return vue === "connexion" ? (
-    <LoginForm onBascule={() => setVue("inscription")} />
-  ) : (
-    <RegisterForm onBascule={() => setVue("connexion")} />
+        <Route element={<RequireOnboarding />}>
+          <Route element={<AppShell />}>
+            <Route index element={<CaissePage />} />
+            <Route path="stock" element={<StockPage />} />
+            <Route
+              path="bilan"
+              element={
+                <RequireRole roles={["proprietaire", "gerant", "super_admin"]}>
+                  <BilanPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="catalogue"
+              element={
+                <RequireRole roles={["proprietaire", "super_admin"]}>
+                  <CataloguePage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="parametres"
+              element={
+                <RequireRole roles={["proprietaire", "super_admin"]}>
+                  <ParametresPage />
+                </RequireRole>
+              }
+            />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
