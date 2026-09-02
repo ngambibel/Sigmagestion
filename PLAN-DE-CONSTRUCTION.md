@@ -59,7 +59,7 @@ Chaque étape ci-dessous précise :
 
 ---
 
-## Étape 0.2 — Squelette du dépôt et Docker Compose `[ ]`
+## Étape 0.2 — Squelette du dépôt et Docker Compose `[x]`
 
 🎯 **Objectif** : `docker compose up` démarre PostgreSQL + Redis, et on a la structure de dossiers du projet.
 
@@ -80,7 +80,7 @@ Tu dois voir `db` et `redis` avec le statut **running / healthy**.
 
 ---
 
-## Étape 0.3 — Projet Django + DRF qui démarre `[ ]`
+## Étape 0.3 — Projet Django + DRF qui démarre `[~]`
 
 🎯 **Objectif** : le backend Django répond sur `http://localhost:8000`.
 
