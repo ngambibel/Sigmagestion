@@ -1,10 +1,83 @@
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, type Consommable } from "../../lib/api";
 import { EnTetePage, EtatVide } from "../../components/layout/EnTetePage";
+import { Button } from "../../components/ui/Button";
+import { ConsommableFormModal } from "../../features/stocks/ConsommableFormModal";
+
+function formaterQte(valeur: string) {
+  const n = Number(valeur);
+  return Number.isInteger(n) ? n.toLocaleString("fr-FR") : n.toString();
+}
 
 export default function StockPage() {
+  const consommables = useQuery({ queryKey: ["consommables"], queryFn: api.listerConsommables });
+  const queryClient = useQueryClient();
+  const [edition, setEdition] = useState<{ consommable: Consommable | null } | null>(null);
+
+  const suppression = useMutation({
+    mutationFn: (id: number) => api.supprimerConsommable(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["consommables"] }),
+  });
+
+  const supprimer = (c: Consommable) => {
+    if (window.confirm(`Supprimer « ${c.nom} » ? Cette action est définitive.`)) {
+      suppression.mutate(c.id);
+    }
+  };
+
   return (
     <div>
-      <EnTetePage titre="Stock" sousTitre="Suivez vos consommables et vos seuils d'alerte." />
-      <EtatVide message="La gestion du stock détaillée arrive bientôt. Vos consommables déclarés à l'installation apparaîtront ici." />
+      <div className="flex items-start justify-between">
+        <EnTetePage titre="Stock" sousTitre="Vos consommables et vos seuils d'alerte." />
+        <Button onClick={() => setEdition({ consommable: null })}>+ Ajouter</Button>
+      </div>
+
+      {consommables.isLoading ? (
+        <p className="text-encre-pale">Chargement…</p>
+      ) : !consommables.data || consommables.data.length === 0 ? (
+        <EtatVide message="Aucun consommable enregistré. Ajoutez-en un pour suivre vos stocks." />
+      ) : (
+        <ul className="divide-y divide-papier-creux rounded-2xl border border-papier-creux bg-papier-surface">
+          {consommables.data.map((c) => (
+            <li key={c.id} className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 font-medium">
+                  <span className="truncate">{c.nom}</span>
+                  {c.sous_seuil && (
+                    <span className="rounded bg-jaune-clair px-1.5 py-0.5 text-xs text-jaune">
+                      stock bas
+                    </span>
+                  )}
+                  {!c.actif && (
+                    <span className="rounded bg-papier-creux px-1.5 py-0.5 text-xs text-encre-pale">
+                      inactif
+                    </span>
+                  )}
+                </p>
+                <p className="text-sm text-encre-pale">
+                  seuil {formaterQte(c.seuil_alerte)} · {c.prix_achat.toLocaleString("fr-FR")} XAF/{c.unite_mesure}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="tabular text-lg">
+                  {formaterQte(c.qte_stock)} <span className="text-sm text-encre-pale">{c.unite_mesure}</span>
+                </span>
+                <button onClick={() => setEdition({ consommable: c })} className="text-sm font-medium text-cyan underline">
+                  Modifier
+                </button>
+                <button onClick={() => supprimer(c)} className="text-sm font-medium text-magenta underline" disabled={suppression.isPending}>
+                  Supprimer
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {edition && (
+        <ConsommableFormModal consommable={edition.consommable} onFermer={() => setEdition(null)} />
+      )}
     </div>
   );
 }

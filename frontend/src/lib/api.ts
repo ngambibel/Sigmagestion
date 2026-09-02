@@ -205,4 +205,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify(donnees),
     }),
+  modifierConsommable: (id: number, donnees: Record<string, unknown>) =>
+    requete<Consommable>(`/consommables/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(donnees),
+    }),
+  supprimerConsommable: (id: number) =>
+    requete<null>(`/consommables/${id}/`, { method: "DELETE" }),
 };
