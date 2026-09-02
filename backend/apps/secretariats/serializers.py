@@ -9,7 +9,7 @@ class SecretariatSerializer(serializers.ModelSerializer):
         model = Secretariat
         fields = [
             "id", "nom", "code", "ville", "quartier",
-            "telephone", "devise", "proprietaire", "cree_le",
+            "telephone", "devise", "onboarding_termine", "proprietaire", "cree_le",
         ]
         read_only_fields = ["id", "code", "proprietaire", "cree_le"]
 

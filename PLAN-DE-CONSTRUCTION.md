@@ -188,7 +188,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 1.2 — Modèle Secretariat + isolation multi-locataire `[~]`
+## Étape 1.2 — Modèle Secretariat + isolation multi-locataire `[x]`
 
 🎯 **Objectif** : chaque donnée est rattachée à un secrétariat, et un secrétariat ne voit jamais les données d'un autre. **C'est le point de sécurité le plus critique du projet.**
 

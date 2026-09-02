@@ -35,6 +35,10 @@ class Secretariat(models.Model):
         help_text="Numéro imprimé sur les reçus.",
     )
     devise = models.CharField("devise", max_length=3, default="XAF")
+    onboarding_termine = models.BooleanField(
+        "installation terminée", default=False,
+        help_text="Faux tant que l'assistant en 3 écrans n'est pas achevé.",
+    )
     proprietaire = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

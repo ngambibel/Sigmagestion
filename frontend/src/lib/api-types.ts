@@ -75,6 +75,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/consommables/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        get: operations["v1_consommables_list"];
+        put?: never;
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        post: operations["v1_consommables_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/consommables/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        get: operations["v1_consommables_retrieve"];
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        put: operations["v1_consommables_update"];
+        post?: never;
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        delete: operations["v1_consommables_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD des consommables, cloisonné au secrétariat actif. */
+        patch: operations["v1_consommables_partial_update"];
+        trace?: never;
+    };
     "/api/v1/moi/": {
         parameters: {
             query?: never;
@@ -92,6 +130,28 @@ export interface paths {
         head?: never;
         /** @description GET/PATCH /moi/ — profil de l'utilisateur courant. */
         patch: operations["v1_moi_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/onboarding/modeles/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description GET /onboarding/modeles/ — services et consommables proposés par défaut.
+         *
+         *     Le propriétaire coche ceux qu'il veut, ajuste prix et stocks, puis crée
+         *     ses services / consommables via les endpoints dédiés.
+         */
+        get: operations["v1_onboarding_modeles_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/sante/": {
@@ -190,6 +250,44 @@ export interface paths {
         patch: operations["v1_secretariats_partial_update"];
         trace?: never;
     };
+    "/api/v1/services/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        get: operations["v1_services_list"];
+        put?: never;
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        post: operations["v1_services_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        get: operations["v1_services_retrieve"];
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        put: operations["v1_services_update"];
+        post?: never;
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        delete: operations["v1_services_destroy"];
+        options?: never;
+        head?: never;
+        /** @description CRUD des services, cloisonné au secrétariat actif. */
+        patch: operations["v1_services_partial_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -202,6 +300,32 @@ export interface components {
         Connexion: {
             telephone: string;
             password: string;
+        };
+        Consommable: {
+            readonly id: number;
+            nom: string;
+            /**
+             * Unité de mesure
+             * @description feuille, spirale, pochette, cartouche, ramette…
+             */
+            unite_mesure: string;
+            /** Prix d'achat unitaire (XAF) */
+            prix_achat?: number;
+            /**
+             * Quantité en stock
+             * Format: decimal
+             */
+            qte_stock?: string;
+            /**
+             * Seuil d'alerte
+             * Format: decimal
+             */
+            seuil_alerte?: string;
+            /** Format: decimal */
+            seuil_critique?: string | null;
+            fournisseur?: string;
+            actif?: boolean;
+            readonly sous_seuil: boolean;
         };
         /**
          * @description Inscription d'un propriétaire (M1.1).
@@ -256,6 +380,32 @@ export interface components {
              */
             readonly date_joined: string;
         };
+        PatchedConsommable: {
+            readonly id?: number;
+            nom?: string;
+            /**
+             * Unité de mesure
+             * @description feuille, spirale, pochette, cartouche, ramette…
+             */
+            unite_mesure?: string;
+            /** Prix d'achat unitaire (XAF) */
+            prix_achat?: number;
+            /**
+             * Quantité en stock
+             * Format: decimal
+             */
+            qte_stock?: string;
+            /**
+             * Seuil d'alerte
+             * Format: decimal
+             */
+            seuil_alerte?: string;
+            /** Format: decimal */
+            seuil_critique?: string | null;
+            fournisseur?: string;
+            actif?: boolean;
+            readonly sous_seuil?: boolean;
+        };
         /** @description Profil de l'utilisateur courant. */
         PatchedMoi: {
             readonly id?: number;
@@ -302,6 +452,11 @@ export interface components {
              */
             telephone?: string;
             devise?: string;
+            /**
+             * Installation terminée
+             * @description Faux tant que l'assistant en 3 écrans n'est pas achevé.
+             */
+            onboarding_termine?: boolean;
             /** Propriétaire */
             readonly proprietaire?: number;
             /**
@@ -309,6 +464,24 @@ export interface components {
              * Format: date-time
              */
             readonly cree_le?: string;
+        };
+        PatchedService: {
+            readonly id?: number;
+            nom?: string;
+            /** Catégorie */
+            categorie?: string;
+            /** Unité de facturation */
+            unite_facturation?: components["schemas"]["UniteFacturationEnum"];
+            /** Prix de vente (XAF) */
+            prix?: number;
+            /** Consomme du stock */
+            consomme_stock?: boolean;
+            actif?: boolean;
+            couleur?: string;
+            /** Icône */
+            icone?: string;
+            /** Ordre d'affichage */
+            ordre?: number;
         };
         /**
          * @description * `super_admin` - Super-administrateur
@@ -331,6 +504,11 @@ export interface components {
              */
             telephone?: string;
             devise?: string;
+            /**
+             * Installation terminée
+             * @description Faux tant que l'assistant en 3 écrans n'est pas achevé.
+             */
+            onboarding_termine?: boolean;
             /** Propriétaire */
             readonly proprietaire: number;
             /**
@@ -339,10 +517,36 @@ export interface components {
              */
             readonly cree_le: string;
         };
+        Service: {
+            readonly id: number;
+            nom: string;
+            /** Catégorie */
+            categorie?: string;
+            /** Unité de facturation */
+            unite_facturation?: components["schemas"]["UniteFacturationEnum"];
+            /** Prix de vente (XAF) */
+            prix: number;
+            /** Consomme du stock */
+            consomme_stock?: boolean;
+            actif?: boolean;
+            couleur?: string;
+            /** Icône */
+            icone?: string;
+            /** Ordre d'affichage */
+            ordre?: number;
+        };
         TokenRefresh: {
             readonly access: string;
             refresh: string;
         };
+        /**
+         * @description * `page` - La page
+         *     * `document` - Le document
+         *     * `piece` - La pièce
+         *     * `forfait` - Le forfait
+         * @enum {string}
+         */
+        UniteFacturationEnum: "page" | "document" | "piece" | "forfait";
     };
     responses: never;
     parameters: never;
@@ -445,6 +649,149 @@ export interface operations {
             };
         };
     };
+    v1_consommables_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"][];
+                };
+            };
+        };
+    };
+    v1_consommables_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Consommable"];
+                "application/x-www-form-urlencoded": components["schemas"]["Consommable"];
+                "multipart/form-data": components["schemas"]["Consommable"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
+    v1_consommables_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
+    v1_consommables_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Consommable"];
+                "application/x-www-form-urlencoded": components["schemas"]["Consommable"];
+                "multipart/form-data": components["schemas"]["Consommable"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
+    v1_consommables_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    v1_consommables_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this consommable. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedConsommable"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedConsommable"];
+                "multipart/form-data": components["schemas"]["PatchedConsommable"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consommable"];
+                };
+            };
+        };
+    };
     v1_moi_retrieve: {
         parameters: {
             query?: never;
@@ -511,6 +858,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Moi"];
                 };
+            };
+        };
+    };
+    v1_onboarding_modeles_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -667,6 +1032,149 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Secretariat"];
+                };
+            };
+        };
+    };
+    v1_services_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"][];
+                };
+            };
+        };
+    };
+    v1_services_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Service"];
+                "application/x-www-form-urlencoded": components["schemas"]["Service"];
+                "multipart/form-data": components["schemas"]["Service"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_services_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_services_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Service"];
+                "application/x-www-form-urlencoded": components["schemas"]["Service"];
+                "multipart/form-data": components["schemas"]["Service"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+        };
+    };
+    v1_services_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    v1_services_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this service. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedService"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedService"];
+                "multipart/form-data": components["schemas"]["PatchedService"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
                 };
             };
         };
