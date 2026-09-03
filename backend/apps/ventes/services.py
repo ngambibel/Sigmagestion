@@ -15,7 +15,7 @@ from apps.catalogue.models import Service
 from apps.secretariats.models import Secretariat
 from apps.stocks.models import Consommable, MouvementStock, TypeMouvement
 
-from .models import LignePrestation, ModePaiement, Prestation
+from .models import LignePrestation, ModePaiement, Prestation, StatutPrestation
 
 
 class VenteError(Exception):
@@ -135,3 +135,41 @@ def enregistrer_prestation(
             alertes.append(c)
 
     return prestation, alertes
+
+
+@transaction.atomic
+def annuler_prestation(*, prestation, motif, auteur=None):
+    """Annule une prestation sans la supprimer (RG-03) : contre-passe le stock.
+
+    Chaque sortie de vente est compensée par un mouvement ANNULATION qui
+    réinjecte la quantité. La prestation passe au statut ANNULEE.
+    """
+    motif = (motif or "").strip()
+    if not motif:
+        raise VenteError("Un motif est obligatoire pour annuler une vente.")
+
+    prestation = Prestation.objects.select_for_update().get(pk=prestation.pk)
+    if prestation.statut == StatutPrestation.ANNULEE:
+        raise VenteError("Cette prestation est déjà annulée.")
+
+    sorties = prestation.mouvements_stock.filter(type=TypeMouvement.SORTIE_VENTE)
+    for mouvement in sorties:
+        consommable = Consommable.objects.select_for_update().get(pk=mouvement.consommable_id)
+        quantite_retour = -mouvement.quantite  # la sortie était négative → retour positif
+        stock_avant = consommable.qte_stock
+        stock_apres = stock_avant + quantite_retour
+        consommable.qte_stock = stock_apres
+        consommable.save(update_fields=["qte_stock", "modifie_le"])
+        MouvementStock.objects.create(
+            secretariat=prestation.secretariat, consommable=consommable,
+            type=TypeMouvement.ANNULATION, quantite=quantite_retour,
+            stock_avant=stock_avant, stock_apres=stock_apres,
+            prestation=prestation, auteur=auteur,
+            motif=f"Annulation {prestation.numero} : {motif}",
+        )
+
+    prestation.statut = StatutPrestation.ANNULEE
+    prestation.annulee_le = timezone.now()
+    prestation.motif_annulation = motif
+    prestation.save(update_fields=["statut", "annulee_le", "motif_annulation"])
+    return prestation

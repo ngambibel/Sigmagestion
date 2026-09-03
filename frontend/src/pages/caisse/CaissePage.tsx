@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type ResultatEncaissement } from "../../lib/api";
 import { EnTetePage } from "../../components/layout/EnTetePage";
@@ -6,6 +7,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { TuilesServices } from "../../features/caisse/TuilesServices";
 import { TicketEnCours } from "../../features/caisse/TicketEnCours";
+import { useAuthStore } from "../../stores/auth";
 
 function OuvertureSession() {
   const [fond, setFond] = useState<number>(0);
@@ -74,6 +76,8 @@ function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: (
 
 function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondInitial: number }) {
   const [recu, setRecu] = useState<ResultatEncaissement | null>(null);
+  const role = useAuthStore((s) => s.utilisateur?.role);
+  const peutVoirVentes = role === "proprietaire" || role === "gerant" || role === "super_admin";
 
   const surSucces = (resultat: ResultatEncaissement) => {
     if ("vibrate" in navigator) navigator.vibrate?.(60);
@@ -93,6 +97,11 @@ function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondIni
         <span className="text-encre-pale">
           depuis {new Date(ouverteLe).toLocaleString("fr-FR", { timeStyle: "short", dateStyle: "short" })}
         </span>
+        {peutVoirVentes && (
+          <Link to="/ventes" className="ml-auto text-sm font-medium text-cyan underline">
+            Voir les ventes
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">

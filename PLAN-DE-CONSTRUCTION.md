@@ -370,7 +370,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.3 — Encaissement avec décrémentation atomique du stock `[~]`
+## Étape 3.3 — Encaissement avec décrémentation atomique du stock `[x]`
 
 🎯 **Objectif** : valider une vente qui décrémente le stock en une transaction atomique. **C'est l'étape la plus importante du produit.**
 
@@ -394,7 +394,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.4 — Annulation avec contre-passation `[ ]`
+## Étape 3.4 — Annulation avec contre-passation `[~]`
 
 🎯 **Objectif** : annuler une prestation sans jamais la supprimer.
 

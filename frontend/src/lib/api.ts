@@ -338,6 +338,13 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  listerPrestations: () => requete<Prestation[]>("/prestations/"),
+  annulerPrestation: (id: number, motif: string) =>
+    requete<Prestation>(`/prestations/${id}/annuler/`, {
+      method: "POST",
+      body: JSON.stringify({ motif }),
+    }),
+
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
     const params = new URLSearchParams();

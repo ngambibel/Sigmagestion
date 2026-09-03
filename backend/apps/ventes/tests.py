@@ -129,6 +129,44 @@ class EncaissementTests(APITestCase):
         r = self._vendre([{"service": self.photocopie.id, "quantite": 1}], montant_recu=100)
         self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_annulation_contre_passe_le_stock(self):
+        # Vente : papier 1000 → 975
+        r = self._vendre([{"service": self.photocopie.id, "quantite": 25}], montant_recu=1000)
+        pid = r.data["prestation"]["id"]
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 975.0)
+        # Annulation
+        ra = self.client.post(f"/api/v1/prestations/{pid}/annuler/", {"motif": "erreur de saisie"}, format="json")
+        self.assertEqual(ra.status_code, status.HTTP_200_OK)
+        self.assertEqual(ra.data["statut"], "annulee")
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 1000.0)  # stock revenu
+        self.assertTrue(MouvementStock.objects.filter(type="annulation", prestation_id=pid).exists())
+
+    def test_annulation_sans_motif_refuse(self):
+        r = self._vendre([{"service": self.photocopie.id, "quantite": 5}], montant_recu=1000)
+        pid = r.data["prestation"]["id"]
+        ra = self.client.post(f"/api/v1/prestations/{pid}/annuler/", {"motif": "  "}, format="json")
+        self.assertEqual(ra.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_double_annulation_refuse(self):
+        r = self._vendre([{"service": self.photocopie.id, "quantite": 5}], montant_recu=1000)
+        pid = r.data["prestation"]["id"]
+        self.client.post(f"/api/v1/prestations/{pid}/annuler/", {"motif": "x"}, format="json")
+        ra = self.client.post(f"/api/v1/prestations/{pid}/annuler/", {"motif": "y"}, format="json")
+        self.assertEqual(ra.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_employe_ne_peut_pas_annuler(self):
+        r = self._vendre([{"service": self.photocopie.id, "quantite": 5}], montant_recu=1000)
+        pid = r.data["prestation"]["id"]
+        employe = Utilisateur.objects.create_user(
+            telephone="+237600000071", nom="E", password="MotDePasseE1",
+            role=Role.EMPLOYE, secretariat=self.sec,
+        )
+        self.client.force_authenticate(employe)
+        ra = self.client.post(f"/api/v1/prestations/{pid}/annuler/", {"motif": "x"}, format="json")
+        self.assertEqual(ra.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_numeros_sequentiels(self):
         self._vendre([{"service": self.saisie.id, "quantite": 1}], montant_recu=200)
         self._vendre([{"service": self.saisie.id, "quantite": 1}], montant_recu=200)

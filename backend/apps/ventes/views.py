@@ -1,15 +1,17 @@
 """Vues des ventes."""
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.caisse.models import SessionCaisse, StatutSession
 from apps.stocks.serializers import ConsommableSerializer
+from core.permissions import EstGerantOuPlus
 from core.tenancy import TenantQuerySetMixin
 
 from .models import Prestation
 from .serializers import PrestationCreationSerializer, PrestationSerializer
-from .services import VenteError, enregistrer_prestation
+from .services import VenteError, annuler_prestation, enregistrer_prestation
 
 
 class PrestationViewSet(
@@ -58,3 +60,15 @@ class PrestationViewSet(
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=["post"], permission_classes=[EstGerantOuPlus])
+    def annuler(self, request, pk=None):
+        """POST /prestations/{id}/annuler/ — annulation avec contre-passation (gérant+)."""
+        prestation = self.get_object()
+        try:
+            prestation = annuler_prestation(
+                prestation=prestation, motif=request.data.get("motif", ""), auteur=request.user,
+            )
+        except VenteError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(PrestationSerializer(prestation).data)
