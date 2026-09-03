@@ -239,6 +239,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/prestations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Enregistrement et consultation des prestations. */
+        get: operations["v1_prestations_list"];
+        put?: never;
+        /** @description Enregistrement et consultation des prestations. */
+        post: operations["v1_prestations_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prestations/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Enregistrement et consultation des prestations. */
+        get: operations["v1_prestations_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sante/": {
         parameters: {
             query?: never;
@@ -517,6 +552,27 @@ export interface components {
             email?: string;
             password: string;
         };
+        LignePrestation: {
+            readonly id: number;
+            service: number;
+            /** Nom du service */
+            nom_service: string;
+            /** Prix unitaire figé (XAF) */
+            prix_unitaire: number;
+            /** Quantité */
+            quantite: number;
+            /** Coût de revient unitaire figé (XAF) */
+            cout_unitaire?: number;
+            readonly montant: number;
+        };
+        /**
+         * @description * `especes` - Espèces
+         *     * `momo` - MTN MoMo
+         *     * `orange_money` - Orange Money
+         *     * `credit` - Crédit
+         * @enum {string}
+         */
+        ModePaiementEnum: "especes" | "momo" | "orange_money" | "credit";
         /** @description Profil de l'utilisateur courant. */
         Moi: {
             readonly id: number;
@@ -689,6 +745,37 @@ export interface components {
             ordre?: number;
             readonly activable?: boolean;
         };
+        Prestation: {
+            readonly id: number;
+            /** Numéro */
+            numero: string;
+            statut?: components["schemas"]["PrestationStatutEnum"];
+            mode_paiement: components["schemas"]["ModePaiementEnum"];
+            /** Remise (XAF) */
+            remise?: number;
+            /** Montant total (XAF) */
+            montant_total: number;
+            /** Montant reçu (XAF) */
+            montant_recu?: number | null;
+            /** Monnaie rendue (XAF) */
+            monnaie_rendue?: number | null;
+            readonly employe_nom: string;
+            readonly lignes: components["schemas"]["LignePrestation"][];
+            /** Format: date-time */
+            annulee_le?: string | null;
+            motif_annulation?: string;
+            /**
+             * Créé le
+             * Format: date-time
+             */
+            readonly cree_le: string;
+        };
+        /**
+         * @description * `validee` - Validée
+         *     * `annulee` - Annulée
+         * @enum {string}
+         */
+        PrestationStatutEnum: "validee" | "annulee";
         /**
          * @description * `super_admin` - Super-administrateur
          *     * `proprietaire` - Propriétaire
@@ -753,7 +840,7 @@ export interface components {
             readonly employe_nom: string;
             /** Fond de caisse initial (XAF) */
             fond_initial?: number;
-            readonly statut: components["schemas"]["StatutEnum"];
+            readonly statut: components["schemas"]["SessionCaisseStatutEnum"];
             /** Montant théorique (XAF) */
             readonly montant_theorique: number | null;
             /** Montant compté (XAF) */
@@ -775,7 +862,7 @@ export interface components {
          *     * `cloturee` - Clôturée
          * @enum {string}
          */
-        StatutEnum: "ouverte" | "cloturee";
+        SessionCaisseStatutEnum: "ouverte" | "cloturee";
         TokenRefresh: {
             readonly access: string;
             refresh: string;
@@ -1241,6 +1328,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    v1_prestations_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prestation"][];
+                };
+            };
+        };
+    };
+    v1_prestations_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Prestation"];
+                "application/x-www-form-urlencoded": components["schemas"]["Prestation"];
+                "multipart/form-data": components["schemas"]["Prestation"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prestation"];
+                };
+            };
+        };
+    };
+    v1_prestations_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this prestation. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prestation"];
+                };
             };
         };
     };

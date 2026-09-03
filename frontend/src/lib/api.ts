@@ -171,6 +171,40 @@ export interface SessionCaisse {
   cloturee_le: string | null;
 }
 
+export interface LignePrestation {
+  id: number;
+  service: number;
+  nom_service: string;
+  prix_unitaire: number;
+  quantite: number;
+  cout_unitaire: number;
+  montant: number;
+}
+
+export interface Prestation {
+  id: number;
+  numero: string;
+  statut: string;
+  mode_paiement: string;
+  remise: number;
+  montant_total: number;
+  montant_recu: number | null;
+  monnaie_rendue: number | null;
+  employe_nom: string;
+  lignes: LignePrestation[];
+  cree_le: string;
+}
+
+export interface ResultatEncaissement {
+  prestation: Prestation;
+  alertes_stock: Consommable[];
+}
+
+export interface SaisieLigne {
+  service: number;
+  quantite: number;
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -288,6 +322,18 @@ export const api = {
     requete<SessionCaisse>("/sessions-caisse/", {
       method: "POST",
       body: JSON.stringify({ fond_initial }),
+    }),
+
+  // --- Ventes / encaissement ---
+  enregistrerPrestation: (payload: {
+    lignes: SaisieLigne[];
+    mode_paiement: string;
+    remise: number;
+    montant_recu?: number | null;
+  }) =>
+    requete<ResultatEncaissement>("/prestations/", {
+      method: "POST",
+      body: JSON.stringify(payload),
     }),
 
   // --- Journal des mouvements ---

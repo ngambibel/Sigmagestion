@@ -353,7 +353,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.2 — Écran de saisie et ticket en cours `[~]`
+## Étape 3.2 — Écran de saisie et ticket en cours `[x]`
 
 🎯 **Objectif** : l'écran de vente avec les tuiles services et le ticket.
 
@@ -370,7 +370,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.3 — Encaissement avec décrémentation atomique du stock `[ ]`
+## Étape 3.3 — Encaissement avec décrémentation atomique du stock `[~]`
 
 🎯 **Objectif** : valider une vente qui décrémente le stock en une transaction atomique. **C'est l'étape la plus importante du produit.**
 

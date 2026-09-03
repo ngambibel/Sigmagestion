@@ -39,6 +39,10 @@ class Secretariat(models.Model):
         "installation terminée", default=False,
         help_text="Faux tant que l'assistant en 3 écrans n'est pas achevé.",
     )
+    autoriser_stock_negatif = models.BooleanField(
+        "autoriser la vente en stock négatif", default=False,
+        help_text="Si faux, une vente est bloquée quand un consommable manque.",
+    )
     proprietaire = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useTicketStore, sousTotal, totalTicket } from "../../stores/ticket";
 import { Button } from "../../components/ui/Button";
+import { EncaissementModal } from "./EncaissementModal";
+import type { ResultatEncaissement } from "../../lib/api";
 
-export function TicketEnCours() {
+export function TicketEnCours({ onSucces }: { onSucces: (r: ResultatEncaissement) => void }) {
+  const [encaissementOuvert, setEncaissementOuvert] = useState(false);
   const lignes = useTicketStore((s) => s.lignes);
   const remise = useTicketStore((s) => s.remise);
   const changerQuantite = useTicketStore((s) => s.changerQuantite);
@@ -64,13 +68,20 @@ export function TicketEnCours() {
           <span className="text-encre-douce">Total</span>
           <span className="tabular text-4xl">{total.toLocaleString("fr-FR")} F</span>
         </div>
-        <Button variante="valide" taille="grand" className="w-full" disabled={lignes.length === 0} title="L'encaissement arrive à l'étape 3.3">
+        <Button
+          variante="valide"
+          taille="grand"
+          className="w-full"
+          disabled={lignes.length === 0}
+          onClick={() => setEncaissementOuvert(true)}
+        >
           Encaisser {total.toLocaleString("fr-FR")} F
         </Button>
-        <p className="mt-2 text-center text-xs text-encre-pale">
-          (L'encaissement réel arrive à l'étape suivante.)
-        </p>
       </div>
+
+      {encaissementOuvert && (
+        <EncaissementModal onFermer={() => setEncaissementOuvert(false)} onSucces={onSucces} />
+      )}
     </div>
   );
 }

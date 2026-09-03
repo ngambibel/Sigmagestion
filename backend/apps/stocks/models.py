@@ -77,6 +77,10 @@ class MouvementStock(models.Model):
         "prix d'achat unitaire du lot (XAF)", null=True, blank=True,
     )
     motif = models.CharField("motif", max_length=255, blank=True, default="")
+    prestation = models.ForeignKey(
+        "ventes.Prestation", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="mouvements_stock",
+    )
     auteur = models.ForeignKey(
         "comptes.Utilisateur", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="mouvements_stock",
