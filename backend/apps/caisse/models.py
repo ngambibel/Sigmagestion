@@ -49,3 +49,45 @@ class SessionCaisse(models.Model):
     @property
     def est_ouverte(self) -> bool:
         return self.statut == StatutSession.OUVERTE
+
+
+class CategorieDepense(models.TextChoices):
+    FOURNITURE = "fourniture", "Fourniture"
+    TRANSPORT = "transport", "Transport"
+    ELECTRICITE = "electricite", "Électricité / eau"
+    MAINTENANCE = "maintenance", "Maintenance"
+    SALAIRE = "salaire", "Salaire / avance"
+    AUTRE = "autre", "Autre"
+
+
+class Depense(models.Model):
+    """Sortie de caisse rattachée à une session."""
+
+    secretariat = models.ForeignKey(
+        "secretariats.Secretariat", on_delete=models.CASCADE, related_name="depenses",
+    )
+    session = models.ForeignKey(
+        SessionCaisse, on_delete=models.PROTECT, related_name="depenses",
+    )
+    categorie = models.CharField(
+        "catégorie", max_length=15, choices=CategorieDepense.choices,
+        default=CategorieDepense.AUTRE,
+    )
+    montant = models.PositiveIntegerField("montant (XAF)")
+    description = models.CharField("description", max_length=255, blank=True, default="")
+    justificatif = models.ImageField(
+        "justificatif", upload_to="depenses/", null=True, blank=True,
+    )
+    auteur = models.ForeignKey(
+        "comptes.Utilisateur", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="depenses",
+    )
+    cree_le = models.DateTimeField("créé le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "dépense"
+        verbose_name_plural = "dépenses"
+        ordering = ["-cree_le"]
+
+    def __str__(self):
+        return f"{self.get_categorie_display()} — {self.montant} XAF"

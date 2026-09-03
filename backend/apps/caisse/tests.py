@@ -61,6 +61,87 @@ class SessionCaisseTests(APITestCase):
         self.assertEqual(len(resultats), 1)
         self.assertEqual(resultats[0]["employe"], self.employe.id)
 
+    def test_depense_et_cloture_avec_ecart(self):
+        from apps.catalogue.models import Service
+        from apps.ventes.services import enregistrer_prestation
+
+        # Le propriétaire peut enregistrer une dépense (matrice de permissions).
+        self.client.force_authenticate(self.proprio)
+        session = self.client.post(
+            "/api/v1/sessions-caisse/", {"fond_initial": 10000}, format="json"
+        ).data
+        session_obj = SessionCaisse.objects.get(id=session["id"])
+
+        # Une vente espèces de 625
+        service = Service.objects.create(secretariat=self.sec, nom="Photocopie", prix=25)
+        enregistrer_prestation(
+            session=session_obj,
+            lignes_saisie=[{"service": service.id, "quantite": 25}],
+            mode_paiement="especes", montant_recu=1000, auteur=self.proprio,
+        )
+        # Une dépense de 2000
+        rd = self.client.post(
+            "/api/v1/depenses/",
+            {"categorie": "transport", "montant": 2000, "description": "Carburant"},
+            format="json",
+        )
+        self.assertEqual(rd.status_code, status.HTTP_201_CREATED)
+
+        # Théorique = 10000 + 625 - 2000 = 8625
+        # Clôture avec écart sans commentaire → 400 (RG-12)
+        r1 = self.client.post(
+            f"/api/v1/sessions-caisse/{session['id']}/cloturer/",
+            {"montant_compte": 8600}, format="json",
+        )
+        self.assertEqual(r1.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Avec commentaire → OK, écart = 8600 - 8625 = -25
+        r2 = self.client.post(
+            f"/api/v1/sessions-caisse/{session['id']}/cloturer/",
+            {"montant_compte": 8600, "commentaire": "Manque 25 F"}, format="json",
+        )
+        self.assertEqual(r2.status_code, status.HTTP_200_OK)
+        self.assertEqual(r2.data["montant_theorique"], 8625)
+        self.assertEqual(r2.data["ecart"], -25)
+        self.assertEqual(r2.data["statut"], "cloturee")
+
+    def test_cloture_sans_ecart_sans_commentaire(self):
+        self.client.force_authenticate(self.employe)
+        session = self.client.post(
+            "/api/v1/sessions-caisse/", {"fond_initial": 5000}, format="json"
+        ).data
+        # Théorique = 5000 (aucune vente ni dépense) ; compté 5000 → écart 0
+        r = self.client.post(
+            f"/api/v1/sessions-caisse/{session['id']}/cloturer/",
+            {"montant_compte": 5000}, format="json",
+        )
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["ecart"], 0)
+
+    def test_double_cloture_refusee(self):
+        self.client.force_authenticate(self.employe)
+        session = self.client.post(
+            "/api/v1/sessions-caisse/", {"fond_initial": 5000}, format="json"
+        ).data
+        self.client.post(
+            f"/api/v1/sessions-caisse/{session['id']}/cloturer/",
+            {"montant_compte": 5000}, format="json",
+        )
+        r = self.client.post(
+            f"/api/v1/sessions-caisse/{session['id']}/cloturer/",
+            {"montant_compte": 5000}, format="json",
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_employe_ne_peut_pas_creer_depense(self):
+        # Un employé ne peut pas enregistrer une dépense (matrice : propriétaire/gérant).
+        self.client.force_authenticate(self.employe)
+        self.client.post("/api/v1/sessions-caisse/", {"fond_initial": 5000}, format="json")
+        r = self.client.post(
+            "/api/v1/depenses/", {"categorie": "autre", "montant": 500}, format="json"
+        )
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_isolation_multi_locataire(self):
         autre_proprio = Utilisateur.objects.create_user(
             telephone="+237600000063", nom="X", password="MotDePasseX1", role=Role.PROPRIETAIRE,

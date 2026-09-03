@@ -164,6 +164,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/depenses/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Dépenses rattachées à la session ouverte de l'utilisateur (gérant+). */
+        get: operations["v1_depenses_list"];
+        put?: never;
+        /** @description Dépenses rattachées à la session ouverte de l'utilisateur (gérant+). */
+        post: operations["v1_depenses_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/moi/": {
         parameters: {
             query?: never;
@@ -268,6 +286,23 @@ export interface paths {
         get: operations["v1_prestations_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prestations/{id}/annuler/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /prestations/{id}/annuler/ — annulation avec contre-passation (gérant+). */
+        post: operations["v1_prestations_annuler_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -433,20 +468,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Ouverture et consultation des sessions de caisse.
-         *
-         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
-         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
-         */
+        /** @description Ouverture, consultation et clôture des sessions de caisse. */
         get: operations["v1_sessions_caisse_list"];
         put?: never;
-        /**
-         * @description Ouverture et consultation des sessions de caisse.
-         *
-         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
-         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
-         */
+        /** @description Ouverture, consultation et clôture des sessions de caisse. */
         post: operations["v1_sessions_caisse_create"];
         delete?: never;
         options?: never;
@@ -461,15 +486,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description Ouverture et consultation des sessions de caisse.
-         *
-         *     - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
-         *     - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
-         */
+        /** @description Ouverture, consultation et clôture des sessions de caisse. */
         get: operations["v1_sessions_caisse_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions-caisse/{id}/cloturer/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /sessions-caisse/{id}/cloturer/ — clôture avec écart (RG-12). */
+        post: operations["v1_sessions_caisse_cloturer_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -497,6 +534,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description * `fourniture` - Fourniture
+         *     * `transport` - Transport
+         *     * `electricite` - Électricité / eau
+         *     * `maintenance` - Maintenance
+         *     * `salaire` - Salaire / avance
+         *     * `autre` - Autre
+         * @enum {string}
+         */
+        CategorieEnum: "fourniture" | "transport" | "electricite" | "maintenance" | "salaire" | "autre";
         /**
          * @description Connexion par téléphone + mot de passe.
          *
@@ -531,6 +578,24 @@ export interface components {
             fournisseur?: string;
             actif?: boolean;
             readonly sous_seuil: boolean;
+        };
+        Depense: {
+            readonly id: number;
+            /** Catégorie */
+            categorie?: components["schemas"]["CategorieEnum"];
+            readonly categorie_libelle: string;
+            /** Montant (XAF) */
+            montant: number;
+            description?: string;
+            /** Format: uri */
+            justificatif?: string | null;
+            /** @default  */
+            readonly auteur_nom: string;
+            /**
+             * Créé le
+             * Format: date-time
+             */
+            readonly cree_le: string;
         };
         /**
          * @description Inscription d'un propriétaire (M1.1).
@@ -1208,6 +1273,50 @@ export interface operations {
             };
         };
     };
+    v1_depenses_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Depense"][];
+                };
+            };
+        };
+    };
+    v1_depenses_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Depense"];
+                "application/x-www-form-urlencoded": components["schemas"]["Depense"];
+                "multipart/form-data": components["schemas"]["Depense"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Depense"];
+                };
+            };
+        };
+    };
     v1_moi_retrieve: {
         parameters: {
             query?: never;
@@ -1391,6 +1500,34 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prestation"];
+                };
+            };
+        };
+    };
+    v1_prestations_annuler_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this prestation. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Prestation"];
+                "application/x-www-form-urlencoded": components["schemas"]["Prestation"];
+                "multipart/form-data": components["schemas"]["Prestation"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1807,6 +1944,34 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionCaisse"];
+                };
+            };
+        };
+    };
+    v1_sessions_caisse_cloturer_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this session de caisse. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SessionCaisse"];
+                "application/x-www-form-urlencoded": components["schemas"]["SessionCaisse"];
+                "multipart/form-data": components["schemas"]["SessionCaisse"];
+            };
+        };
         responses: {
             200: {
                 headers: {

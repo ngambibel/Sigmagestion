@@ -5,10 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.comptes.models import Role
+from core.permissions import EstGerantOuPlus
 from core.tenancy import TenantQuerySetMixin, secretariat_actif
 
-from .models import SessionCaisse, StatutSession
-from .serializers import SessionCaisseSerializer
+from .models import Depense, SessionCaisse, StatutSession
+from .serializers import ClotureSerializer, DepenseSerializer, SessionCaisseSerializer
+from .services import CaisseError, cloturer_session, montant_theorique_session
 
 
 class SessionCaisseViewSet(
@@ -18,11 +20,7 @@ class SessionCaisseViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """Ouverture et consultation des sessions de caisse.
-
-    - Tout membre peut ouvrir SA session (RG-11 : une seule ouverte à la fois).
-    - Un employé ne voit que ses sessions ; propriétaire/gérant voient tout le secrétariat.
-    """
+    """Ouverture, consultation et clôture des sessions de caisse."""
 
     serializer_class = SessionCaisseSerializer
     queryset = SessionCaisse.objects.select_related("employe").all()
@@ -39,7 +37,6 @@ class SessionCaisseViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # RG-11 : refuser une deuxième session ouverte pour cet utilisateur.
         if SessionCaisse.objects.filter(
             employe=request.user, statut=StatutSession.OUVERTE
         ).exists():
@@ -53,8 +50,7 @@ class SessionCaisseViewSet(
             employe=request.user,
             fond_initial=serializer.validated_data.get("fond_initial", 0),
         )
-        sortie = self.get_serializer(session)
-        return Response(sortie.data, status=status.HTTP_201_CREATED)
+        return Response(self.get_serializer(session).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"])
     def active(self, request):
@@ -66,4 +62,56 @@ class SessionCaisseViewSet(
         )
         if session is None:
             return Response(None)
+        donnees = self.get_serializer(session).data
+        donnees["montant_theorique_estime"] = montant_theorique_session(session)
+        return Response(donnees)
+
+    @action(detail=True, methods=["post"])
+    def cloturer(self, request, pk=None):
+        """POST /sessions-caisse/{id}/cloturer/ — clôture avec écart (RG-12)."""
+        session = self.get_object()
+        cloture = ClotureSerializer(data=request.data)
+        cloture.is_valid(raise_exception=True)
+        try:
+            session = cloturer_session(
+                session,
+                montant_compte=cloture.validated_data["montant_compte"],
+                commentaire=cloture.validated_data.get("commentaire", ""),
+            )
+        except CaisseError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(session).data)
+
+
+class DepenseViewSet(
+    TenantQuerySetMixin,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Dépenses rattachées à la session ouverte de l'utilisateur (gérant+)."""
+
+    serializer_class = DepenseSerializer
+    queryset = Depense.objects.select_related("auteur").all()
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [EstGerantOuPlus()]
+        return [IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        session = (
+            SessionCaisse.objects.filter(employe=request.user, statut=StatutSession.OUVERTE)
+            .first()
+        )
+        if session is None:
+            return Response(
+                {"detail": "Ouvrez d'abord une session de caisse."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            secretariat=secretariat_actif(request), session=session, auteur=request.user,
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

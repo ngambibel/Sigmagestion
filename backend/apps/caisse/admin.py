@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import SessionCaisse
+from .models import Depense, SessionCaisse
+
+
+@admin.register(Depense)
+class DepenseAdmin(admin.ModelAdmin):
+    list_display = ("categorie", "montant", "session", "auteur", "cree_le")
+    list_filter = ("categorie",)
 
 
 @admin.register(SessionCaisse)

@@ -169,6 +169,18 @@ export interface SessionCaisse {
   commentaire: string;
   ouverte_le: string;
   cloturee_le: string | null;
+  montant_theorique_estime?: number;
+}
+
+export interface Depense {
+  id: number;
+  categorie: string;
+  categorie_libelle: string;
+  montant: number;
+  description: string;
+  justificatif: string | null;
+  auteur_nom: string;
+  cree_le: string;
 }
 
 export interface LignePrestation {
@@ -324,6 +336,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ fond_initial }),
     }),
+  cloturerSession: (id: number, donnees: { montant_compte: number; commentaire: string }) =>
+    requete<SessionCaisse>(`/sessions-caisse/${id}/cloturer/`, {
+      method: "POST",
+      body: JSON.stringify(donnees),
+    }),
+
+  // --- Dépenses ---
+  listerDepenses: () => requete<Depense[]>("/depenses/"),
+  creerDepense: (donnees: FormData) =>
+    requete<Depense>("/depenses/", { method: "POST", body: donnees }),
 
   // --- Ventes / encaissement ---
   enregistrerPrestation: (payload: {

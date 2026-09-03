@@ -7,7 +7,10 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { TuilesServices } from "../../features/caisse/TuilesServices";
 import { TicketEnCours } from "../../features/caisse/TicketEnCours";
+import { DepenseModal } from "../../features/caisse/DepenseModal";
+import { ClotureModal } from "../../features/caisse/ClotureModal";
 import { useAuthStore } from "../../stores/auth";
+import type { SessionCaisse } from "../../lib/api";
 
 function OuvertureSession() {
   const [fond, setFond] = useState<number>(0);
@@ -74,10 +77,13 @@ function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: (
   );
 }
 
-function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondInitial: number }) {
+function SessionEnCours({ session }: { session: SessionCaisse }) {
   const [recu, setRecu] = useState<ResultatEncaissement | null>(null);
+  const [depenseOuverte, setDepenseOuverte] = useState(false);
+  const [clotureOuverte, setClotureOuverte] = useState(false);
   const role = useAuthStore((s) => s.utilisateur?.role);
   const peutVoirVentes = role === "proprietaire" || role === "gerant" || role === "super_admin";
+  const peutDepenser = role === "proprietaire" || role === "gerant" || role === "super_admin";
 
   const surSucces = (resultat: ResultatEncaissement) => {
     if ("vibrate" in navigator) navigator.vibrate?.(60);
@@ -92,16 +98,24 @@ function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondIni
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
         <span className="rounded-lg bg-valide px-2 py-1 text-sm text-white">Caisse ouverte</span>
         <span className="text-encre-douce">
-          Fond : <span className="tabular font-medium">{fondInitial.toLocaleString("fr-FR")} XAF</span>
+          Fond : <span className="tabular font-medium">{session.fond_initial.toLocaleString("fr-FR")} XAF</span>
         </span>
         <span className="text-encre-pale">
-          depuis {new Date(ouverteLe).toLocaleString("fr-FR", { timeStyle: "short", dateStyle: "short" })}
+          depuis {new Date(session.ouverte_le).toLocaleString("fr-FR", { timeStyle: "short", dateStyle: "short" })}
         </span>
-        {peutVoirVentes && (
-          <Link to="/ventes" className="ml-auto text-sm font-medium text-cyan underline">
-            Voir les ventes
-          </Link>
-        )}
+        <div className="ml-auto flex items-center gap-3">
+          {peutVoirVentes && (
+            <Link to="/ventes" className="text-sm font-medium text-cyan underline">Ventes</Link>
+          )}
+          {peutDepenser && (
+            <button onClick={() => setDepenseOuverte(true)} className="text-sm font-medium text-magenta underline">
+              Dépense
+            </button>
+          )}
+          <button onClick={() => setClotureOuverte(true)} className="text-sm font-medium text-encre underline">
+            Clôturer
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
@@ -110,6 +124,9 @@ function SessionEnCours({ ouverteLe, fondInitial }: { ouverteLe: string; fondIni
           <TicketEnCours onSucces={surSucces} />
         </div>
       </div>
+
+      {depenseOuverte && <DepenseModal onFermer={() => setDepenseOuverte(false)} />}
+      {clotureOuverte && <ClotureModal session={session} onFermer={() => setClotureOuverte(false)} />}
     </div>
   );
 }
@@ -123,7 +140,7 @@ export default function CaissePage() {
       {session.isLoading ? (
         <p className="text-encre-pale">Chargement…</p>
       ) : session.data ? (
-        <SessionEnCours ouverteLe={session.data.ouverte_le} fondInitial={session.data.fond_initial} />
+        <SessionEnCours session={session.data} />
       ) : (
         <OuvertureSession />
       )}

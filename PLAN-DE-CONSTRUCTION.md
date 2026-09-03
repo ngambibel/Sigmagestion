@@ -394,7 +394,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.4 — Annulation avec contre-passation `[~]`
+## Étape 3.4 — Annulation avec contre-passation `[x]`
 
 🎯 **Objectif** : annuler une prestation sans jamais la supprimer.
 
@@ -409,7 +409,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.5 — Dépenses et clôture de session `[ ]`
+## Étape 3.5 — Dépenses et clôture de session `[~]`
 
 🎯 **Objectif** : enregistrer des sorties de caisse et clôturer en comptant.
 
