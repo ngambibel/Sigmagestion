@@ -20,6 +20,13 @@ django-cors-headers==4.6.0
 # === Cache / broker ===
 redis==5.2.1
 
+# === Tâches asynchrones ===
+celery==5.4.0
+django-celery-beat==2.7.0
+
+# === Notifications push ===
+pywebpush==2.0.3
+
 # === Journalisation structurée ===
 structlog==24.4.0
 django-structlog==8.1.0

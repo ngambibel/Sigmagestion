@@ -425,7 +425,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.6 — Reçu imprimable et partage WhatsApp `[~]`
+## Étape 3.6 — Reçu imprimable et partage WhatsApp `[x]`
 
 🎯 **Objectif** : générer un reçu ticket.
 
@@ -444,7 +444,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 4 — Notifications push (Lot 4)
 
-## Étape 4.1 — Celery + Beat + VAPID `[ ]`
+## Étape 4.1 — Celery + Beat + VAPID `[~]`
 
 🎯 **Objectif** : l'infrastructure de tâches asynchrones et de push fonctionne.
 

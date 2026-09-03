@@ -40,3 +40,7 @@ frontend/vite.config.js
 frontend/vite.config.d.ts
 *.tsbuildinfo
 backend/media/
+
+# Clés VAPID (générées, non versionnées)
+backend/private_key.pem
+backend/public_key.pem
