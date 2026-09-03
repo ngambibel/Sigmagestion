@@ -56,6 +56,9 @@ function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: (
             {p.monnaie_rendue != null && (
               <p className="tabular text-sm">Rendre {p.monnaie_rendue.toLocaleString("fr-FR")} F</p>
             )}
+            {p.mode_paiement === "credit" && p.nom_client && (
+              <p className="text-sm">Crédit — {p.nom_client}</p>
+            )}
           </div>
           <button onClick={onFermer} className="text-white/80" aria-label="Fermer">✕</button>
         </div>

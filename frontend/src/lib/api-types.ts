@@ -751,6 +751,11 @@ export interface components {
             numero: string;
             statut?: components["schemas"]["PrestationStatutEnum"];
             mode_paiement: components["schemas"]["ModePaiementEnum"];
+            /**
+             * Nom du client
+             * @description Renseigné pour une vente à crédit (qui doit l'argent).
+             */
+            nom_client?: string;
             /** Remise (XAF) */
             remise?: number;
             /** Montant total (XAF) */

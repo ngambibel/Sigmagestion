@@ -28,9 +28,11 @@ export function EncaissementModal({
 
   const [mode, setMode] = useState("especes");
   const [montantRecu, setMontantRecu] = useState<number>(total);
+  const [nomClient, setNomClient] = useState("");
 
   const monnaie = mode === "especes" ? Math.max(0, montantRecu - total) : 0;
   const insuffisant = mode === "especes" && montantRecu < total;
+  const clientManquant = mode === "credit" && nomClient.trim() === "";
 
   const encaisser = useMutation({
     mutationFn: () =>
@@ -39,6 +41,7 @@ export function EncaissementModal({
         mode_paiement: mode,
         remise,
         montant_recu: mode === "especes" ? Number(montantRecu) : null,
+        nom_client: mode === "credit" ? nomClient.trim() : "",
       }),
     onSuccess: async (resultat) => {
       vider();
@@ -98,6 +101,18 @@ export function EncaissementModal({
         </div>
       )}
 
+      {mode === "credit" && (
+        <div className="mb-4">
+          <Input
+            label="Nom du client (à crédit)"
+            value={nomClient}
+            onChange={(e) => setNomClient(e.target.value)}
+            placeholder="ex. Awa Ngono"
+            erreur={clientManquant ? "Le nom du client est requis pour un crédit." : undefined}
+          />
+        </div>
+      )}
+
       {erreur && <p className="mb-3 text-sm text-magenta">{erreur}</p>}
 
       <div className="flex justify-end gap-2">
@@ -106,7 +121,7 @@ export function EncaissementModal({
           variante="valide"
           taille="grand"
           onClick={() => encaisser.mutate()}
-          disabled={encaisser.isPending || insuffisant || lignes.length === 0}
+          disabled={encaisser.isPending || insuffisant || clientManquant || lignes.length === 0}
         >
           {encaisser.isPending ? "Encaissement…" : `Encaisser ${total.toLocaleString("fr-FR")} F`}
         </Button>

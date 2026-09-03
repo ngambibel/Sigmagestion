@@ -96,9 +96,23 @@ class EncaissementTests(APITestCase):
         r = self._vendre([{"service": self.photocopie.id, "quantite": 25}], montant_recu=100)
         self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_credit_sans_montant_recu(self):
-        r = self._vendre([{"service": self.photocopie.id, "quantite": 10}], mode="credit")
+    def test_credit_exige_nom_client(self):
+        r = self.client.post(
+            "/api/v1/prestations/",
+            {"lignes": [{"service": self.photocopie.id, "quantite": 10}], "mode_paiement": "credit"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_credit_avec_nom_client(self):
+        r = self.client.post(
+            "/api/v1/prestations/",
+            {"lignes": [{"service": self.photocopie.id, "quantite": 10}],
+             "mode_paiement": "credit", "nom_client": "Awa Ngono"},
+            format="json",
+        )
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r.data["prestation"]["nom_client"], "Awa Ngono")
         self.assertIsNone(r.data["prestation"]["monnaie_rendue"])
 
     def test_alerte_stock_apres_vente(self):

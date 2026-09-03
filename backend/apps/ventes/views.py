@@ -45,6 +45,7 @@ class PrestationViewSet(
                 mode_paiement=entree.validated_data["mode_paiement"],
                 remise=entree.validated_data.get("remise", 0),
                 montant_recu=entree.validated_data.get("montant_recu"),
+                nom_client=entree.validated_data.get("nom_client", ""),
                 auteur=request.user,
             )
         except VenteError as exc:

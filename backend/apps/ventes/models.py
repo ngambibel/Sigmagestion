@@ -32,6 +32,10 @@ class Prestation(models.Model):
     )
     mode_paiement = models.CharField(max_length=15, choices=ModePaiement.choices)
 
+    nom_client = models.CharField(
+        "nom du client", max_length=150, blank=True, default="",
+        help_text="Renseigné pour une vente à crédit (qui doit l'argent).",
+    )
     remise = models.PositiveIntegerField("remise (XAF)", default=0)
     montant_total = models.PositiveIntegerField("montant total (XAF)")
     montant_recu = models.PositiveIntegerField("montant reçu (XAF)", null=True, blank=True)

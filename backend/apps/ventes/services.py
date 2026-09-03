@@ -32,10 +32,15 @@ def _generer_numero(secretariat) -> str:
 
 @transaction.atomic
 def enregistrer_prestation(
-    *, session, lignes_saisie, mode_paiement, remise=0, montant_recu=None, auteur=None,
+    *, session, lignes_saisie, mode_paiement, remise=0, montant_recu=None,
+    nom_client="", auteur=None,
 ):
     if session.statut != StatutSession.OUVERTE:
         raise VenteError("La session de caisse n'est pas ouverte.")
+
+    nom_client = (nom_client or "").strip()
+    if mode_paiement == ModePaiement.CREDIT and not nom_client:
+        raise VenteError("Le nom du client est requis pour une vente à crédit.")
 
     # Verrou secrétariat : sérialise la numérotation des tickets.
     secretariat = Secretariat.objects.select_for_update().get(pk=session.secretariat_id)
@@ -101,6 +106,7 @@ def enregistrer_prestation(
         secretariat=secretariat, session=session, numero=_generer_numero(secretariat),
         employe=auteur, mode_paiement=mode_paiement, remise=remise,
         montant_total=montant_total, montant_recu=montant_recu_val, monnaie_rendue=monnaie,
+        nom_client=nom_client,
     )
     LignePrestation.objects.bulk_create(
         [

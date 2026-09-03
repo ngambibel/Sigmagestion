@@ -186,6 +186,7 @@ export interface Prestation {
   numero: string;
   statut: string;
   mode_paiement: string;
+  nom_client: string;
   remise: number;
   montant_total: number;
   montant_recu: number | null;
@@ -330,6 +331,7 @@ export const api = {
     mode_paiement: string;
     remise: number;
     montant_recu?: number | null;
+    nom_client?: string;
   }) =>
     requete<ResultatEncaissement>("/prestations/", {
       method: "POST",
