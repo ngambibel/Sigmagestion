@@ -33,6 +33,10 @@ class Consommable(models.Model):
     )
     fournisseur = models.CharField("fournisseur", max_length=120, blank=True, default="")
     actif = models.BooleanField("actif", default=True)
+    derniere_alerte_le = models.DateTimeField(
+        "dernière alerte de seuil", null=True, blank=True,
+        help_text="Anti-spam RG-08 : au plus une alerte par 24 h tant que le stock reste bas.",
+    )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)

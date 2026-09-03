@@ -476,7 +476,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 4.3 — Alerte de stock faible `[ ]`
+## Étape 4.3 — Alerte de stock faible `[~]`
 
 🎯 **Objectif** : être prévenu avant la rupture.
 
