@@ -444,7 +444,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 4 — Notifications push (Lot 4)
 
-## Étape 4.1 — Celery + Beat + VAPID `[~]`
+## Étape 4.1 — Celery + Beat + VAPID `[x]`
 
 🎯 **Objectif** : l'infrastructure de tâches asynchrones et de push fonctionne.
 
@@ -460,7 +460,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 4.2 — Abonnement push et service worker `[ ]`
+## Étape 4.2 — Abonnement push et service worker `[~]`
 
 🎯 **Objectif** : le navigateur s'abonne aux notifications.
 

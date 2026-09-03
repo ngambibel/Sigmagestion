@@ -367,6 +367,18 @@ export const api = {
       body: JSON.stringify({ motif }),
     }),
 
+  // --- Notifications push ---
+  clePubliquePush: () => requete<{ cle_publique: string }>("/push/cle-publique/"),
+  abonnerPush: (abonnement: { endpoint: string; keys: { p256dh: string; auth: string }; navigateur?: string }) =>
+    requete<{ id: number }>("/push/abonnement/", {
+      method: "POST",
+      body: JSON.stringify(abonnement),
+    }),
+  desabonnerPush: (endpoint: string) =>
+    requete<null>("/push/abonnement/", { method: "DELETE", body: JSON.stringify({ endpoint }) }),
+  envoyerPushTest: () =>
+    requete<{ envoyees: number }>("/push/test/", { method: "POST", body: "{}" }),
+
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
     const params = new URLSearchParams();

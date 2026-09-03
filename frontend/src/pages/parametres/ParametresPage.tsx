@@ -1,6 +1,7 @@
 import { useSecretariats } from "../../features/secretariats/useSecretariats";
 import { useAuthStore } from "../../stores/auth";
 import { EnTetePage } from "../../components/layout/EnTetePage";
+import { SectionNotifications } from "../../features/notifications/SectionNotifications";
 
 const libellesRole: Record<string, string> = {
   super_admin: "Super-administrateur",
@@ -25,6 +26,8 @@ export default function ParametresPage() {
   return (
     <div className="max-w-lg">
       <EnTetePage titre="Paramètres" sousTitre="Votre compte et votre secrétariat." />
+
+      <SectionNotifications />
 
       <section className="mb-6 rounded-2xl bg-papier-surface p-5 shadow-sm">
         <h2 className="mb-2 text-lg">Compte</h2>
