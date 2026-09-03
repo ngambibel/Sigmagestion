@@ -21,3 +21,27 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* À l'impression, on ne montre que le reçu, au format ticket. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #recu-imprimable,
+  #recu-imprimable * {
+    visibility: visible;
+  }
+  #recu-imprimable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    max-width: 80mm;
+    border: none;
+    padding: 0;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 4mm;
+  }
+}

@@ -9,8 +9,10 @@ import { TuilesServices } from "../../features/caisse/TuilesServices";
 import { TicketEnCours } from "../../features/caisse/TicketEnCours";
 import { DepenseModal } from "../../features/caisse/DepenseModal";
 import { ClotureModal } from "../../features/caisse/ClotureModal";
+import { RecuModal } from "../../features/ventes/RecuModal";
+import { useSecretariats } from "../../features/secretariats/useSecretariats";
 import { useAuthStore } from "../../stores/auth";
-import type { SessionCaisse } from "../../lib/api";
+import type { Prestation, SessionCaisse } from "../../lib/api";
 
 function OuvertureSession() {
   const [fond, setFond] = useState<number>(0);
@@ -50,7 +52,15 @@ function OuvertureSession() {
   );
 }
 
-function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: () => void }) {
+function RecuToast({
+  recu,
+  onFermer,
+  onVoirRecu,
+}: {
+  recu: ResultatEncaissement;
+  onFermer: () => void;
+  onVoirRecu: () => void;
+}) {
   const p = recu.prestation;
   return (
     <div className="fixed inset-x-0 top-16 z-40 mx-auto max-w-md px-4">
@@ -72,6 +82,9 @@ function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: (
             Stock bas : {recu.alertes_stock.map((a) => a.nom).join(", ")}
           </div>
         )}
+        <button onClick={onVoirRecu} className="mt-2 text-sm font-medium text-white underline">
+          Voir le reçu
+        </button>
       </div>
     </div>
   );
@@ -79,8 +92,10 @@ function RecuToast({ recu, onFermer }: { recu: ResultatEncaissement; onFermer: (
 
 function SessionEnCours({ session }: { session: SessionCaisse }) {
   const [recu, setRecu] = useState<ResultatEncaissement | null>(null);
+  const [recuAffiche, setRecuAffiche] = useState<Prestation | null>(null);
   const [depenseOuverte, setDepenseOuverte] = useState(false);
   const [clotureOuverte, setClotureOuverte] = useState(false);
+  const { secretariat } = useSecretariats();
   const role = useAuthStore((s) => s.utilisateur?.role);
   const peutVoirVentes = role === "proprietaire" || role === "gerant" || role === "super_admin";
   const peutDepenser = role === "proprietaire" || role === "gerant" || role === "super_admin";
@@ -93,7 +108,16 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
 
   return (
     <div>
-      {recu && <RecuToast recu={recu} onFermer={() => setRecu(null)} />}
+      {recu && (
+        <RecuToast
+          recu={recu}
+          onFermer={() => setRecu(null)}
+          onVoirRecu={() => {
+            setRecuAffiche(recu.prestation);
+            setRecu(null);
+          }}
+        />
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
         <span className="rounded-lg bg-valide px-2 py-1 text-sm text-white">Caisse ouverte</span>
@@ -127,6 +151,9 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
 
       {depenseOuverte && <DepenseModal onFermer={() => setDepenseOuverte(false)} />}
       {clotureOuverte && <ClotureModal session={session} onFermer={() => setClotureOuverte(false)} />}
+      {recuAffiche && (
+        <RecuModal prestation={recuAffiche} secretariat={secretariat} onFermer={() => setRecuAffiche(null)} />
+      )}
     </div>
   );
 }

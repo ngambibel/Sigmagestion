@@ -409,7 +409,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.5 — Dépenses et clôture de session `[~]`
+## Étape 3.5 — Dépenses et clôture de session `[x]`
 
 🎯 **Objectif** : enregistrer des sorties de caisse et clôturer en comptant.
 
@@ -425,7 +425,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 3.6 — Reçu imprimable et partage WhatsApp `[ ]`
+## Étape 3.6 — Reçu imprimable et partage WhatsApp `[~]`
 
 🎯 **Objectif** : générer un reçu ticket.
 

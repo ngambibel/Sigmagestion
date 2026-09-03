@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Prestation } from "../../lib/api";
 import { EnTetePage, EtatVide } from "../../components/layout/EnTetePage";
+import { RecuModal } from "../../features/ventes/RecuModal";
+import { useSecretariats } from "../../features/secretariats/useSecretariats";
 
 const modesLibelle: Record<string, string> = {
   especes: "Espèces",
@@ -17,6 +20,8 @@ function formaterHeure(iso: string) {
 export default function VentesPage() {
   const prestations = useQuery({ queryKey: ["prestations"], queryFn: api.listerPrestations });
   const queryClient = useQueryClient();
+  const { secretariat } = useSecretariats();
+  const [recu, setRecu] = useState<Prestation | null>(null);
 
   const annuler = useMutation({
     mutationFn: ({ id, motif }: { id: number; motif: string }) => api.annulerPrestation(id, motif),
@@ -75,15 +80,23 @@ export default function VentesPage() {
                       )}
                     </td>
                     <td className="p-3 text-right">
-                      {!annulee && (
+                      <div className="flex items-center justify-end gap-3">
                         <button
-                          onClick={() => demanderAnnulation(p)}
-                          className="text-sm font-medium text-magenta underline"
-                          disabled={annuler.isPending}
+                          onClick={() => setRecu(p)}
+                          className="text-sm font-medium text-cyan underline"
                         >
-                          Annuler
+                          Reçu
                         </button>
-                      )}
+                        {!annulee && (
+                          <button
+                            onClick={() => demanderAnnulation(p)}
+                            className="text-sm font-medium text-magenta underline"
+                            disabled={annuler.isPending}
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -91,6 +104,10 @@ export default function VentesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {recu && (
+        <RecuModal prestation={recu} secretariat={secretariat} onFermer={() => setRecu(null)} />
       )}
     </div>
   );
