@@ -5,7 +5,7 @@ le stock via la nomenclature, tracer les mouvements, évaluer les seuils.
 Verrouillage pessimiste (`select_for_update`) sur le secrétariat (numérotation)
 et sur les consommables (concurrence de saisie).
 """
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_CEILING, ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 from django.db.models import Count, F, Sum
@@ -46,7 +46,10 @@ def enregistrer_prestation(
     # Verrou secrétariat : sérialise la numérotation des tickets.
     secretariat = Secretariat.objects.select_for_update().get(pk=session.secretariat_id)
 
-    # 1. Figer les lignes (prix + coût de revient) et cumuler les besoins en stock.
+    # 1. Figer les lignes (prix appliqué + coût de revient) et cumuler les besoins en stock.
+    #    - Le prix unitaire est modifiable à la vente (rabais gros volume).
+    #    - En recto-verso, les consommables « feuille » sont divisés par 2 (arrondi au supérieur) ;
+    #      le toner, lui, reste compté par page.
     besoins: dict[int, Decimal] = {}
     lignes_data = []
     sous_total = 0
@@ -58,17 +61,27 @@ def enregistrer_prestation(
         quantite = int(item["quantite"])
         if quantite <= 0:
             continue
-        cout = Decimal("0")
+
+        recto_verso = bool(item.get("recto_verso", False))
+        prix_saisi = item.get("prix_unitaire")
+        prix_applique = int(prix_saisi) if prix_saisi is not None else service.prix
+        if prix_applique < 0:
+            raise VenteError("Le prix ne peut pas être négatif.")
+
+        cout_ligne = Decimal("0")
         for nl in service.lignes_nomenclature.select_related("consommable").all():
-            cout += nl.qte_par_unite * nl.consommable.prix_achat
-            besoins[nl.consommable_id] = besoins.get(nl.consommable_id, Decimal("0")) + (
-                nl.qte_par_unite * quantite
-            )
-        cout_unitaire = int(cout.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-        sous_total += service.prix * quantite
+            besoin = nl.qte_par_unite * quantite
+            if recto_verso and nl.divise_en_recto_verso:
+                besoin = (besoin / Decimal("2")).to_integral_value(rounding=ROUND_CEILING)
+            cout_ligne += besoin * nl.consommable.prix_achat
+            besoins[nl.consommable_id] = besoins.get(nl.consommable_id, Decimal("0")) + besoin
+
+        cout_unitaire = int((cout_ligne / quantite).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        sous_total += prix_applique * quantite
         lignes_data.append(
-            {"service": service, "nom": service.nom, "prix": service.prix,
-             "quantite": quantite, "cout_unitaire": cout_unitaire}
+            {"service": service, "nom": service.nom, "prix": prix_applique,
+             "prix_catalogue": service.prix, "quantite": quantite,
+             "cout_unitaire": cout_unitaire, "recto_verso": recto_verso}
         )
 
     if not lignes_data:
@@ -113,7 +126,9 @@ def enregistrer_prestation(
         [
             LignePrestation(
                 prestation=prestation, service=ld["service"], nom_service=ld["nom"],
-                prix_unitaire=ld["prix"], quantite=ld["quantite"], cout_unitaire=ld["cout_unitaire"],
+                prix_unitaire=ld["prix"], prix_catalogue=ld["prix_catalogue"],
+                quantite=ld["quantite"], cout_unitaire=ld["cout_unitaire"],
+                recto_verso=ld["recto_verso"],
             )
             for ld in lignes_data
         ]

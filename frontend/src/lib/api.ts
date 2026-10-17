@@ -173,6 +173,7 @@ export interface Service {
   image: string | null;
   ordre: number;
   activable: boolean;
+  recto_verso_possible: boolean;
 }
 
 export interface NomenclatureLigne {
@@ -181,6 +182,7 @@ export interface NomenclatureLigne {
   consommable_nom: string;
   unite_mesure: string;
   qte_par_unite: string;
+  divise_en_recto_verso: boolean;
 }
 
 export interface Consommable {
@@ -227,8 +229,10 @@ export interface LignePrestation {
   service: number;
   nom_service: string;
   prix_unitaire: number;
+  prix_catalogue: number;
   quantite: number;
   cout_unitaire: number;
+  recto_verso: boolean;
   montant: number;
 }
 
@@ -255,6 +259,8 @@ export interface ResultatEncaissement {
 export interface SaisieLigne {
   service: number;
   quantite: number;
+  prix_unitaire?: number;
+  recto_verso?: boolean;
 }
 
 export interface TableauDeBord {
@@ -374,7 +380,7 @@ export const api = {
     requete<NomenclatureLigne[]>(`/services/${serviceId}/nomenclature/`),
   putNomenclature: (
     serviceId: number,
-    lignes: { consommable: number; qte_par_unite: number }[],
+    lignes: { consommable: number; qte_par_unite: number; divise_en_recto_verso?: boolean }[],
   ) =>
     requete<NomenclatureLigne[]>(`/services/${serviceId}/nomenclature/`, {
       method: "PUT",

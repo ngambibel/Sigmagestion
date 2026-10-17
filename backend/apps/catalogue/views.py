@@ -53,6 +53,7 @@ class ServiceViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
                         service=service,
                         consommable_id=ligne["consommable"],
                         qte_par_unite=ligne["qte_par_unite"],
+                        divise_en_recto_verso=ligne.get("divise_en_recto_verso", False),
                     )
                     for ligne in serializer.validated_data
                 ]

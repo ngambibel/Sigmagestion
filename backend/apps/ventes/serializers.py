@@ -9,7 +9,10 @@ class LignePrestationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LignePrestation
-        fields = ["id", "service", "nom_service", "prix_unitaire", "quantite", "cout_unitaire", "montant"]
+        fields = [
+            "id", "service", "nom_service", "prix_unitaire", "prix_catalogue",
+            "quantite", "cout_unitaire", "recto_verso", "montant",
+        ]
 
 
 class PrestationSerializer(serializers.ModelSerializer):
@@ -28,6 +31,9 @@ class PrestationSerializer(serializers.ModelSerializer):
 class LigneSaisieSerializer(serializers.Serializer):
     service = serializers.IntegerField()
     quantite = serializers.IntegerField(min_value=1)
+    # Prix appliqué (rabais gros volume) ; absent = prix du catalogue.
+    prix_unitaire = serializers.IntegerField(min_value=0, required=False, allow_null=True)
+    recto_verso = serializers.BooleanField(required=False, default=False)
 
 
 class PrestationCreationSerializer(serializers.Serializer):

@@ -52,6 +52,11 @@ class Service(models.Model):
             return True
         return self.lignes_nomenclature.exists()
 
+    @property
+    def recto_verso_possible(self) -> bool:
+        """Vrai si au moins un consommable de la recette se divise en recto-verso (feuille)."""
+        return self.lignes_nomenclature.filter(divise_en_recto_verso=True).exists()
+
 
 class NomenclatureService(models.Model):
     """Recette d'un service : quel consommable, en quelle quantité par unité vendue.
@@ -68,6 +73,11 @@ class NomenclatureService(models.Model):
     )
     qte_par_unite = models.DecimalField(
         "quantité par unité vendue", max_digits=10, decimal_places=4,
+    )
+    divise_en_recto_verso = models.BooleanField(
+        "feuille divisée en recto-verso", default=False,
+        help_text="Cocher pour le papier : en recto-verso, la consommation est divisée par 2 "
+        "(le toner, lui, reste compté par page).",
     )
 
     class Meta:

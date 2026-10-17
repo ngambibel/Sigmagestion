@@ -5,8 +5,11 @@ import type { Service } from "../lib/api";
 export interface LigneTicket {
   serviceId: number;
   nom: string;
-  prix: number;
+  prix: number; // prix unitaire appliqué (modifiable)
+  prixCatalogue: number; // prix de référence du service
   quantite: number;
+  rectoVerso: boolean;
+  rectoVersoPossible: boolean;
 }
 
 interface TicketState {
@@ -14,6 +17,8 @@ interface TicketState {
   remise: number;
   ajouter: (service: Service) => void;
   changerQuantite: (serviceId: number, quantite: number) => void;
+  changerPrix: (serviceId: number, prix: number) => void;
+  basculerRectoVerso: (serviceId: number) => void;
   retirer: (serviceId: number) => void;
   definirRemise: (montant: number) => void;
   vider: () => void;
@@ -37,7 +42,15 @@ export const useTicketStore = create<TicketState>()(
           return {
             lignes: [
               ...etat.lignes,
-              { serviceId: service.id, nom: service.nom, prix: service.prix, quantite: 1 },
+              {
+                serviceId: service.id,
+                nom: service.nom,
+                prix: service.prix,
+                prixCatalogue: service.prix,
+                quantite: 1,
+                rectoVerso: false,
+                rectoVersoPossible: service.recto_verso_possible,
+              },
             ],
           };
         }),
@@ -49,6 +62,18 @@ export const useTicketStore = create<TicketState>()(
               : etat.lignes.map((l) =>
                   l.serviceId === serviceId ? { ...l, quantite } : l,
                 ),
+        })),
+      changerPrix: (serviceId, prix) =>
+        set((etat) => ({
+          lignes: etat.lignes.map((l) =>
+            l.serviceId === serviceId ? { ...l, prix: Math.max(0, prix) } : l,
+          ),
+        })),
+      basculerRectoVerso: (serviceId) =>
+        set((etat) => ({
+          lignes: etat.lignes.map((l) =>
+            l.serviceId === serviceId ? { ...l, rectoVerso: !l.rectoVerso } : l,
+          ),
         })),
       retirer: (serviceId) =>
         set((etat) => ({ lignes: etat.lignes.filter((l) => l.serviceId !== serviceId) })),

@@ -37,7 +37,12 @@ export function EncaissementModal({
   const encaisser = useMutation({
     mutationFn: () =>
       api.enregistrerPrestation({
-        lignes: lignes.map((l) => ({ service: l.serviceId, quantite: l.quantite })),
+        lignes: lignes.map((l) => ({
+          service: l.serviceId,
+          quantite: l.quantite,
+          prix_unitaire: l.prix,
+          recto_verso: l.rectoVerso,
+        })),
         mode_paiement: mode,
         remise,
         montant_recu: mode === "especes" ? Number(montantRecu) : null,

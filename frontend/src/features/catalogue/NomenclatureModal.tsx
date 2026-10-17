@@ -7,6 +7,7 @@ import { api, type Service } from "../../lib/api";
 interface Ligne {
   consommable: number | "";
   qte_par_unite: number;
+  divise_en_recto_verso: boolean;
 }
 
 export function NomenclatureModal({ service, onFermer }: { service: Service; onFermer: () => void }) {
@@ -26,21 +27,27 @@ export function NomenclatureModal({ service, onFermer }: { service: Service; onF
         ? nomenclature.data.map((l) => ({
             consommable: l.consommable,
             qte_par_unite: Number(l.qte_par_unite),
+            divise_en_recto_verso: l.divise_en_recto_verso,
           }))
-        : [{ consommable: "", qte_par_unite: 1 }],
+        : [{ consommable: "", qte_par_unite: 1, divise_en_recto_verso: false }],
     );
   }, [nomenclature.data]);
 
   const maj = (i: number, champ: Partial<Ligne>) =>
     setLignes((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...champ } : l)));
-  const ajouter = () => setLignes((ls) => [...ls, { consommable: "", qte_par_unite: 1 }]);
+  const ajouter = () =>
+    setLignes((ls) => [...ls, { consommable: "", qte_par_unite: 1, divise_en_recto_verso: false }]);
   const retirer = (i: number) => setLignes((ls) => ls.filter((_, idx) => idx !== i));
 
   const enregistrer = useMutation({
     mutationFn: async () => {
       const valides = lignes
         .filter((l) => l.consommable !== "")
-        .map((l) => ({ consommable: Number(l.consommable), qte_par_unite: Number(l.qte_par_unite) }));
+        .map((l) => ({
+          consommable: Number(l.consommable),
+          qte_par_unite: Number(l.qte_par_unite),
+          divise_en_recto_verso: l.divise_en_recto_verso,
+        }));
       await api.putNomenclature(service.id, valides);
     },
     onSuccess: async () => {
@@ -67,24 +74,35 @@ export function NomenclatureModal({ service, onFermer }: { service: Service; onF
       ) : (
         <div className="flex flex-col gap-3">
           {lignes.map((l, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <select
-                className="h-10 flex-1 rounded-lg border border-papier-creux bg-papier-surface px-2"
-                value={l.consommable}
-                onChange={(e) => maj(i, { consommable: e.target.value === "" ? "" : Number(e.target.value) })}
-              >
-                <option value="">— Choisir —</option>
-                {consommables.data?.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nom} ({c.unite_mesure})</option>
-                ))}
-              </select>
-              <input
-                type="number" min={0} step="0.0001"
-                className="tabular h-10 w-24 rounded-lg border border-papier-creux bg-papier-surface px-2 text-right"
-                value={l.qte_par_unite}
-                onChange={(e) => maj(i, { qte_par_unite: Number(e.target.value) })}
-              />
-              <button onClick={() => retirer(i)} className="px-1 text-magenta" aria-label="Retirer">✕</button>
+            <div key={i} className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <select
+                  className="h-10 flex-1 rounded-lg border border-papier-creux bg-papier-surface px-2"
+                  value={l.consommable}
+                  onChange={(e) => maj(i, { consommable: e.target.value === "" ? "" : Number(e.target.value) })}
+                >
+                  <option value="">— Choisir —</option>
+                  {consommables.data?.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nom} ({c.unite_mesure})</option>
+                  ))}
+                </select>
+                <input
+                  type="number" min={0} step="0.0001"
+                  className="tabular h-10 w-24 rounded-lg border border-papier-creux bg-papier-surface px-2 text-right"
+                  value={l.qte_par_unite}
+                  onChange={(e) => maj(i, { qte_par_unite: Number(e.target.value) })}
+                />
+                <button onClick={() => retirer(i)} className="px-1 text-magenta" aria-label="Retirer">✕</button>
+              </div>
+              <label className="flex w-fit items-center gap-1.5 pl-1 text-sm text-encre-douce">
+                <input
+                  type="checkbox"
+                  checked={l.divise_en_recto_verso}
+                  onChange={(e) => maj(i, { divise_en_recto_verso: e.target.checked })}
+                  className="h-4 w-4 accent-cyan"
+                />
+                Feuille — divisée par 2 en recto-verso
+              </label>
             </div>
           ))}
           <button onClick={ajouter} className="self-start text-sm font-medium text-cyan underline">

@@ -10,14 +10,16 @@ from .models import NomenclatureService, Service
 
 class ServiceSerializer(serializers.ModelSerializer):
     activable = serializers.BooleanField(read_only=True)
+    recto_verso_possible = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Service
         fields = [
             "id", "nom", "categorie", "unite_facturation", "prix",
-            "consomme_stock", "actif", "couleur", "icone", "image", "ordre", "activable",
+            "consomme_stock", "actif", "couleur", "icone", "image", "ordre",
+            "activable", "recto_verso_possible",
         ]
-        read_only_fields = ["id", "activable"]
+        read_only_fields = ["id", "activable", "recto_verso_possible"]
 
     def validate(self, attrs):
         """RG-06 : on ne peut pas *activer* un service consommateur sans nomenclature."""
@@ -41,7 +43,10 @@ class NomenclatureLigneSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NomenclatureService
-        fields = ["id", "consommable", "consommable_nom", "unite_mesure", "qte_par_unite"]
+        fields = [
+            "id", "consommable", "consommable_nom", "unite_mesure",
+            "qte_par_unite", "divise_en_recto_verso",
+        ]
 
 
 class NomenclatureEcritureLigneSerializer(serializers.Serializer):
@@ -51,6 +56,7 @@ class NomenclatureEcritureLigneSerializer(serializers.Serializer):
     qte_par_unite = serializers.DecimalField(
         max_digits=10, decimal_places=4, min_value=Decimal("0"),
     )
+    divise_en_recto_verso = serializers.BooleanField(required=False, default=False)
 
     def validate_consommable(self, valeur):
         secretariat = self.context["secretariat"]

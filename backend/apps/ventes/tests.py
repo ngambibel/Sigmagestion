@@ -174,3 +174,45 @@ class EncaissementTests(APITestCase):
         numeros = list(Prestation.objects.order_by("cree_le").values_list("numero", flat=True))
         self.assertTrue(numeros[0].endswith("-0001"))
         self.assertTrue(numeros[1].endswith("-0002"))
+
+    # --- Prix modifiable à la vente (rabais gros volume) ---
+    def test_prix_unitaire_modifie_change_le_ca(self):
+        r = self._vendre(
+            [{"service": self.photocopie.id, "quantite": 100, "prix_unitaire": 20}],
+            montant_recu=2000,
+        )
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        ligne = r.data["prestation"]["lignes"][0]
+        self.assertEqual(ligne["prix_unitaire"], 20)       # prix appliqué
+        self.assertEqual(ligne["prix_catalogue"], 25)      # prix de référence conservé
+        self.assertEqual(r.data["prestation"]["montant_total"], 2000)  # 100 × 20
+        # Le stock, lui, suit la quantité (100 feuilles).
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 900.0)
+
+    # --- Recto-verso : 2× moins de feuilles (le toner suivrait la page) ---
+    def test_recto_verso_divise_les_feuilles(self):
+        NomenclatureService.objects.filter(
+            service=self.photocopie, consommable=self.papier,
+        ).update(divise_en_recto_verso=True)
+        # 11 pages recto-verso → ceil(11/2) = 6 feuilles.
+        r = self._vendre(
+            [{"service": self.photocopie.id, "quantite": 11, "recto_verso": True}],
+            montant_recu=1000,
+        )
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(r.data["prestation"]["lignes"][0]["recto_verso"])
+        # Le CA reste au nombre de pages : 11 × 25 = 275.
+        self.assertEqual(r.data["prestation"]["montant_total"], 275)
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 994.0)  # 1000 - 6
+
+    def test_recto_verso_sans_flag_nomenclature_ne_divise_pas(self):
+        # Le flag n'est pas posé sur la nomenclature → recto-verso sans effet sur les feuilles.
+        r = self._vendre(
+            [{"service": self.photocopie.id, "quantite": 10, "recto_verso": True}],
+            montant_recu=1000,
+        )
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 990.0)  # 1000 - 10 (pas divisé)

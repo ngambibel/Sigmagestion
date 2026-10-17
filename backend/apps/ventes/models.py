@@ -66,10 +66,18 @@ class LignePrestation(models.Model):
         "catalogue.Service", on_delete=models.PROTECT, related_name="lignes_prestation",
     )
     nom_service = models.CharField("nom du service", max_length=120)
-    prix_unitaire = models.PositiveIntegerField("prix unitaire figé (XAF)")
+    prix_unitaire = models.PositiveIntegerField("prix unitaire appliqué, figé (XAF)")
+    prix_catalogue = models.PositiveIntegerField(
+        "prix catalogue au moment de la vente (XAF)", default=0,
+        help_text="Prix de référence du service ; un prix appliqué inférieur traduit un rabais.",
+    )
     quantite = models.PositiveIntegerField("quantité")
     cout_unitaire = models.PositiveIntegerField(
         "coût de revient unitaire figé (XAF)", default=0,
+    )
+    recto_verso = models.BooleanField(
+        "recto-verso", default=False,
+        help_text="Si vrai, la consommation de feuilles a été divisée par 2 (arrondi au supérieur).",
     )
 
     class Meta:
