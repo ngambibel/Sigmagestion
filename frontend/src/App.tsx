@@ -47,7 +47,7 @@ export default function App() {
             <Route
               path="bilan"
               element={
-                <RequireRole roles={["proprietaire", "gerant", "super_admin"]}>
+                <RequireRole roles={["proprietaire", "gerant", "super_admin", "employe"]}>
                   <BilanPage />
                 </RequireRole>
               }

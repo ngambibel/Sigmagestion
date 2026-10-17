@@ -544,7 +544,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 5.2 — Tableau de bord employé `[ ]`
+## Étape 5.2 — Tableau de bord employé `[~]`
 
 🎯 **Objectif** : vue limitée pour l'employé.
 

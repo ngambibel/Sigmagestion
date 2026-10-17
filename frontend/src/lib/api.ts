@@ -282,6 +282,36 @@ export interface TableauDeBord {
   }[];
 }
 
+export interface TableauDeBordEmploye {
+  session: {
+    id: number;
+    fond_initial: number;
+    ouverte_le: string;
+    total_encaisse: number;
+    nb_prestations: number;
+    especes: number;
+    momo: number;
+    orange: number;
+    credit: number;
+    montant_theorique_estime: number;
+  } | null;
+  mes_prestations: {
+    id: number;
+    numero: string;
+    montant_total: number;
+    mode_paiement: string;
+    statut: string;
+    cree_le: string;
+  }[];
+  consommables_sous_seuil: {
+    id: number;
+    nom: string;
+    qte_stock: string;
+    seuil_alerte: string;
+    unite_mesure: string;
+  }[];
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -481,6 +511,7 @@ export const api = {
 
   // --- Tableau de bord ---
   tableauDeBord: () => requete<TableauDeBord>("/tableau-de-bord/"),
+  tableauDeBordEmploye: () => requete<TableauDeBordEmploye>("/tableau-de-bord/employe/"),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {

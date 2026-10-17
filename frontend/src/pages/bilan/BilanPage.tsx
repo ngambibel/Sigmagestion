@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import { EnTetePage } from "../../components/layout/EnTetePage";
 import { api, type TableauDeBord } from "../../lib/api";
+import { useAuthStore } from "../../stores/auth";
+import BilanEmploye from "./BilanEmploye";
 
 // Encres de la charte (quadrichromie) — utilisées comme couleurs de marque des graphiques.
 const CYAN = "#0B7285";
@@ -47,7 +49,7 @@ function InfoBulle({ actif, payload, label, suffixe }: any) {
   );
 }
 
-export default function BilanPage() {
+function BilanProprietaire() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["tableau-de-bord"],
     queryFn: api.tableauDeBord,
@@ -252,4 +254,10 @@ export default function BilanPage() {
       </div>
     </div>
   );
+}
+
+export default function BilanPage() {
+  const role = useAuthStore((s) => s.utilisateur?.role);
+  if (role === "employe") return <BilanEmploye />;
+  return <BilanProprietaire />;
 }

@@ -75,3 +75,57 @@ class TableauDeBordTests(APITestCase):
         self.client.force_authenticate(employe)
         reponse = self.client.get("/api/v1/tableau-de-bord/")
         self.assertEqual(reponse.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TableauDeBordEmployeTests(APITestCase):
+    def setUp(self):
+        self.proprio = Utilisateur.objects.create_user(
+            telephone="+237600000210", nom="Awa", password="MotDePasseP1", role=Role.PROPRIETAIRE,
+        )
+        self.sec = Secretariat.objects.create(nom="S", code="TDE01", proprietaire=self.proprio)
+        self.employe = Utilisateur.objects.create_user(
+            telephone="+237600000211", nom="Emp", password="MotDePasseE1",
+            role=Role.EMPLOYE, secretariat=self.sec,
+        )
+        self.service = Service.objects.create(secretariat=self.sec, nom="Photocopie", prix=50)
+        self.session = SessionCaisse.objects.create(
+            secretariat=self.sec, employe=self.employe, fond_initial=5000,
+        )
+
+    def _vente(self, montant, mode="especes"):
+        p = Prestation.objects.create(
+            secretariat=self.sec, session=self.session, numero=f"TDE01-{montant}-{mode}",
+            employe=self.employe, mode_paiement=mode, montant_total=montant,
+        )
+        LignePrestation.objects.create(
+            prestation=p, service=self.service, nom_service="Photocopie",
+            prix_unitaire=montant, quantite=1, cout_unitaire=10,
+        )
+
+    def test_employe_voit_sa_session_et_son_total(self):
+        self._vente(1000, "especes")
+        self._vente(500, "momo")
+        self.client.force_authenticate(self.employe)
+        d = self.client.get("/api/v1/tableau-de-bord/employe/").data
+        self.assertIsNotNone(d["session"])
+        self.assertEqual(d["session"]["total_encaisse"], 1500)
+        self.assertEqual(d["session"]["especes"], 1000)
+        self.assertEqual(d["session"]["momo"], 500)
+        self.assertEqual(d["session"]["nb_prestations"], 2)
+        self.assertEqual(len(d["mes_prestations"]), 2)
+
+    def test_vue_employe_sans_marge_ni_prix_achat(self):
+        self._vente(1000)
+        self.client.force_authenticate(self.employe)
+        reponse = self.client.get("/api/v1/tableau-de-bord/employe/")
+        texte = reponse.content.decode()
+        self.assertNotIn("marge", texte)
+        self.assertNotIn("prix_achat", texte)
+        self.assertNotIn("cout", texte)
+
+    def test_sans_session_ouverte(self):
+        self.session.statut = "cloturee"
+        self.session.save(update_fields=["statut"])
+        self.client.force_authenticate(self.employe)
+        d = self.client.get("/api/v1/tableau-de-bord/employe/").data
+        self.assertIsNone(d["session"])

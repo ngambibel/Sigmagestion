@@ -1,12 +1,25 @@
-"""Vue du tableau de bord propriétaire (M7.1)."""
+"""Vues du tableau de bord (M7.1 propriétaire, M7.2 employé)."""
 from django.core.cache import cache
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import EstGerantOuPlus
 from core.tenancy import secretariat_actif
 
-from .services import tableau_de_bord
+from .services import tableau_de_bord, tableau_de_bord_employe
+
+
+class TableauDeBordEmployeView(APIView):
+    """GET /tableau-de-bord/employe/ — vue limitée de l'employé (sans marges ni prix d'achat)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        secretariat = secretariat_actif(request)
+        if secretariat is None:
+            return Response({"detail": "Aucun secrétariat actif."}, status=400)
+        return Response(tableau_de_bord_employe(request.user, secretariat))
 
 
 class TableauDeBordView(APIView):
