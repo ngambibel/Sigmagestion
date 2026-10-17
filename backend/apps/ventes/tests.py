@@ -104,16 +104,20 @@ class EncaissementTests(APITestCase):
         )
         self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_credit_avec_nom_client(self):
+    def test_credit_avec_client_incremente_encours(self):
+        from apps.clients.models import Client
+        cl = Client.objects.create(secretariat=self.sec, nom="Awa Ngono")
         r = self.client.post(
             "/api/v1/prestations/",
             {"lignes": [{"service": self.photocopie.id, "quantite": 10}],
-             "mode_paiement": "credit", "nom_client": "Awa Ngono"},
+             "mode_paiement": "credit", "client": cl.id},
             format="json",
         )
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         self.assertEqual(r.data["prestation"]["nom_client"], "Awa Ngono")
         self.assertIsNone(r.data["prestation"]["monnaie_rendue"])
+        cl.refresh_from_db()
+        self.assertEqual(cl.encours, 250)  # 10 × 25
 
     def test_alerte_stock_apres_vente(self):
         self.spirale.qte_stock = 11

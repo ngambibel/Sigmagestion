@@ -32,9 +32,14 @@ class Prestation(models.Model):
     )
     mode_paiement = models.CharField(max_length=15, choices=ModePaiement.choices)
 
+    client = models.ForeignKey(
+        "clients.Client", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="prestations",
+        help_text="Client rattaché pour une vente à crédit (RG-13).",
+    )
     nom_client = models.CharField(
         "nom du client", max_length=150, blank=True, default="",
-        help_text="Renseigné pour une vente à crédit (qui doit l'argent).",
+        help_text="Copie du nom du client pour une vente à crédit (qui doit l'argent).",
     )
     remise = models.PositiveIntegerField("remise (XAF)", default=0)
     montant_total = models.PositiveIntegerField("montant total (XAF)")

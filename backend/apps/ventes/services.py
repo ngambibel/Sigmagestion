@@ -34,14 +34,17 @@ def _generer_numero(secretariat) -> str:
 @transaction.atomic
 def enregistrer_prestation(
     *, session, lignes_saisie, mode_paiement, remise=0, montant_recu=None,
-    nom_client="", auteur=None,
+    nom_client="", client=None, auteur=None,
 ):
     if session.statut != StatutSession.OUVERTE:
         raise VenteError("La session de caisse n'est pas ouverte.")
 
     nom_client = (nom_client or "").strip()
-    if mode_paiement == ModePaiement.CREDIT and not nom_client:
-        raise VenteError("Le nom du client est requis pour une vente à crédit.")
+    # RG-13 : une vente à crédit exige un client rattaché.
+    if mode_paiement == ModePaiement.CREDIT:
+        if client is None:
+            raise VenteError("Un client est requis pour une vente à crédit.")
+        nom_client = client.nom
 
     # Verrou secrétariat : sérialise la numérotation des tickets.
     secretariat = Secretariat.objects.select_for_update().get(pk=session.secretariat_id)
@@ -115,13 +118,27 @@ def enregistrer_prestation(
         if manquants:
             raise VenteError("Stock insuffisant : " + " ; ".join(manquants))
 
+    # 3b. Crédit : verrou sur le client, contrôle du plafond, puis incrément de l'encours.
+    if mode_paiement == ModePaiement.CREDIT:
+        from apps.clients.models import Client
+
+        client = Client.objects.select_for_update().get(pk=client.pk)
+        if client.plafond_credit and client.encours + montant_total > client.plafond_credit:
+            raise VenteError(
+                f"Plafond de crédit dépassé pour {client.nom} "
+                f"(encours {client.encours} + {montant_total} > {client.plafond_credit} XAF)."
+            )
+
     # 4. Créer la prestation et ses lignes.
     prestation = Prestation.objects.create(
         secretariat=secretariat, session=session, numero=_generer_numero(secretariat),
         employe=auteur, mode_paiement=mode_paiement, remise=remise,
         montant_total=montant_total, montant_recu=montant_recu_val, monnaie_rendue=monnaie,
-        nom_client=nom_client,
+        nom_client=nom_client, client=client if mode_paiement == ModePaiement.CREDIT else None,
     )
+    if mode_paiement == ModePaiement.CREDIT:
+        client.encours += montant_total
+        client.save(update_fields=["encours"])
     LignePrestation.objects.bulk_create(
         [
             LignePrestation(
@@ -183,6 +200,14 @@ def annuler_prestation(*, prestation, motif, auteur=None):
             prestation=prestation, auteur=auteur,
             motif=f"Annulation {prestation.numero} : {motif}",
         )
+
+    # Crédit : on retire la créance de l'encours du client (sans passer sous zéro).
+    if prestation.client_id:
+        from apps.clients.models import Client
+
+        client = Client.objects.select_for_update().get(pk=prestation.client_id)
+        client.encours = max(0, client.encours - prestation.montant_total)
+        client.save(update_fields=["encours"])
 
     prestation.statut = StatutPrestation.ANNULEE
     prestation.annulee_le = timezone.now()

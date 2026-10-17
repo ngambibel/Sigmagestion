@@ -37,6 +37,12 @@ export const ENTREES_NAV: EntreeNav[] = [
     roles: ["proprietaire", "super_admin"],
   },
   {
+    chemin: "/clients",
+    libelle: "Clients",
+    icone: "🧑‍🤝‍🧑",
+    roles: ["proprietaire", "gerant", "super_admin"],
+  },
+  {
     chemin: "/parametres",
     libelle: "Paramètres",
     icone: "⚙️",

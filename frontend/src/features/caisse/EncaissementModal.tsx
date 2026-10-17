@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "../../components/ui/Modal";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
@@ -28,11 +28,27 @@ export function EncaissementModal({
 
   const [mode, setMode] = useState("especes");
   const [montantRecu, setMontantRecu] = useState<number>(total);
-  const [nomClient, setNomClient] = useState("");
+  const [clientId, setClientId] = useState<number | null>(null);
+  const [nouveauNom, setNouveauNom] = useState("");
+
+  const clients = useQuery({
+    queryKey: ["clients"],
+    queryFn: api.listerClients,
+    enabled: mode === "credit",
+  });
+
+  const creerClient = useMutation({
+    mutationFn: () => api.creerClient({ nom: nouveauNom.trim() }),
+    onSuccess: (c) => {
+      setClientId(c.id);
+      setNouveauNom("");
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
 
   const monnaie = mode === "especes" ? Math.max(0, montantRecu - total) : 0;
   const insuffisant = mode === "especes" && montantRecu < total;
-  const clientManquant = mode === "credit" && nomClient.trim() === "";
+  const clientManquant = mode === "credit" && !clientId;
 
   const encaisser = useMutation({
     mutationFn: () =>
@@ -46,7 +62,7 @@ export function EncaissementModal({
         mode_paiement: mode,
         remise,
         montant_recu: mode === "especes" ? Number(montantRecu) : null,
-        nom_client: mode === "credit" ? nomClient.trim() : "",
+        client: mode === "credit" ? clientId : null,
       }),
     onSuccess: async (resultat) => {
       vider();
@@ -108,13 +124,38 @@ export function EncaissementModal({
 
       {mode === "credit" && (
         <div className="mb-4">
-          <Input
-            label="Nom du client (à crédit)"
-            value={nomClient}
-            onChange={(e) => setNomClient(e.target.value)}
-            placeholder="ex. Awa Ngono"
-            erreur={clientManquant ? "Le nom du client est requis pour un crédit." : undefined}
-          />
+          <label className="mb-1.5 block text-sm text-encre-douce">Client (à crédit)</label>
+          <select
+            value={clientId ?? ""}
+            onChange={(e) => setClientId(e.target.value ? Number(e.target.value) : null)}
+            className="h-11 w-full rounded-xl border border-papier-creux bg-papier-surface px-3 text-base text-encre"
+          >
+            <option value="">— Choisir un client —</option>
+            {clients.data?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nom}{c.encours > 0 ? ` (doit ${c.encours.toLocaleString("fr-FR")} F)` : ""}
+              </option>
+            ))}
+          </select>
+          <div className="mt-2 flex items-end gap-2">
+            <Input
+              label="…ou nouveau client"
+              value={nouveauNom}
+              onChange={(e) => setNouveauNom(e.target.value)}
+              placeholder="Nom du nouveau client"
+              className="flex-1"
+            />
+            <Button
+              variante="secondaire"
+              onClick={() => creerClient.mutate()}
+              disabled={creerClient.isPending || nouveauNom.trim() === ""}
+            >
+              Créer
+            </Button>
+          </div>
+          {clientManquant && (
+            <p className="mt-1 text-sm text-magenta">Un client est requis pour une vente à crédit.</p>
+          )}
         </div>
       )}
 

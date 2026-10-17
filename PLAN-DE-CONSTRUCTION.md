@@ -591,7 +591,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 6.2 — Clients et créances `[ ]`
+## Étape 6.2 — Clients et créances `[~]`
 
 🎯 **Objectif** : gérer les ventes à crédit.
 

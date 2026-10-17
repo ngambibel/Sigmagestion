@@ -40,6 +40,19 @@ class PrestationViewSet(
         entree = PrestationCreationSerializer(data=request.data)
         entree.is_valid(raise_exception=True)
 
+        # Résolution du client (crédit), cloisonné au secrétariat de la session.
+        client = None
+        client_id = entree.validated_data.get("client")
+        if client_id:
+            from apps.clients.models import Client
+
+            client = Client.objects.filter(id=client_id, secretariat=session.secretariat).first()
+            if client is None:
+                return Response(
+                    {"detail": "Client introuvable dans ce secrétariat."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         try:
             prestation, alertes = enregistrer_prestation(
                 session=session,
@@ -48,6 +61,7 @@ class PrestationViewSet(
                 remise=entree.validated_data.get("remise", 0),
                 montant_recu=entree.validated_data.get("montant_recu"),
                 nom_client=entree.validated_data.get("nom_client", ""),
+                client=client,
                 auteur=request.user,
             )
         except VenteError as exc:

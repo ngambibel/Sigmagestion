@@ -365,6 +365,33 @@ export interface ActiviteEmploye {
   nb_sessions_avec_ecart: number;
 }
 
+export interface Client {
+  id: number;
+  nom: string;
+  telephone: string;
+  type: string;
+  type_libelle: string;
+  plafond_credit: number;
+  encours: number;
+  actif: boolean;
+  cree_le: string;
+}
+
+export interface Reglement {
+  id: number;
+  montant: number;
+  commentaire: string;
+  auteur_nom: string;
+  cree_le: string;
+}
+
+export interface HistoriqueClient {
+  client: Client;
+  prestations: Prestation[];
+  reglements: Reglement[];
+  credits_non_regles: number;
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -539,6 +566,7 @@ export const api = {
     remise: number;
     montant_recu?: number | null;
     nom_client?: string;
+    client?: number | null;
   }) =>
     requete<ResultatEncaissement>("/prestations/", {
       method: "POST",
@@ -585,6 +613,23 @@ export const api = {
   // --- Rapports ---
   getRapport: (type: TypeRapport, params: string) =>
     requete<Rapport>(`/rapports/${type}/${params ? `?${params}` : ""}`),
+
+  // --- Clients et créances ---
+  listerClients: () => requete<Client[]>("/clients/"),
+  creerClient: (donnees: {
+    nom: string;
+    telephone?: string;
+    type?: string;
+    plafond_credit?: number;
+  }) => requete<Client>("/clients/", { method: "POST", body: JSON.stringify(donnees) }),
+  modifierClient: (id: number, donnees: Partial<Client>) =>
+    requete<Client>(`/clients/${id}/`, { method: "PATCH", body: JSON.stringify(donnees) }),
+  reglementClient: (id: number, montant: number, commentaire = "") =>
+    requete<{ reglement: Reglement; client: Client }>(`/clients/${id}/reglement/`, {
+      method: "POST",
+      body: JSON.stringify({ montant, commentaire }),
+    }),
+  historiqueClient: (id: number) => requete<HistoriqueClient>(`/clients/${id}/historique/`),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
