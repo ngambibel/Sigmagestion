@@ -100,6 +100,18 @@ CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://redis:6379
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TASK_TRACK_STARTED = True
 
+# Tâches périodiques (synchronisées en base au démarrage de Beat).
+CELERY_BEAT_SCHEDULE = {
+    "notifier-ca-periodique": {
+        "task": "apps.notifications.tasks.notifier_ca_periodique",
+        "schedule": 15 * 60,  # toutes les 15 minutes
+    },
+    "bilan-fin-journee": {
+        "task": "apps.notifications.tasks.bilan_fin_journee",
+        "schedule": 15 * 60,
+    },
+}
+
 # --- Notifications Web Push (VAPID) ---
 VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
 VAPID_PRIVATE_KEY_PATH = env("VAPID_PRIVATE_KEY_PATH", default=str(BASE_DIR / "private_key.pem"))

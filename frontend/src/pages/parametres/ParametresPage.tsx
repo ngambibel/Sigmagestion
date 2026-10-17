@@ -2,6 +2,7 @@ import { useSecretariats } from "../../features/secretariats/useSecretariats";
 import { useAuthStore } from "../../stores/auth";
 import { EnTetePage } from "../../components/layout/EnTetePage";
 import { SectionNotifications } from "../../features/notifications/SectionNotifications";
+import { SectionHoraires } from "../../features/notifications/SectionHoraires";
 
 const libellesRole: Record<string, string> = {
   super_admin: "Super-administrateur",
@@ -22,12 +23,15 @@ function Ligne({ cle, valeur }: { cle: string; valeur: string }) {
 export default function ParametresPage() {
   const utilisateur = useAuthStore((s) => s.utilisateur);
   const { secretariat } = useSecretariats();
+  const estProprietaire = utilisateur?.role === "proprietaire" || utilisateur?.role === "super_admin";
 
   return (
     <div className="max-w-lg">
       <EnTetePage titre="Paramètres" sousTitre="Votre compte et votre secrétariat." />
 
       <SectionNotifications />
+
+      {estProprietaire && <SectionHoraires />}
 
       <section className="mb-6 rounded-2xl bg-papier-surface p-5 shadow-sm">
         <h2 className="mb-2 text-lg">Compte</h2>

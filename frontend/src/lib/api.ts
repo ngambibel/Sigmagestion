@@ -101,6 +101,24 @@ export interface Secretariat {
   cree_le: string;
 }
 
+export interface PlageHoraire {
+  jour: number; // 0 = lundi … 6 = dimanche
+  jour_libelle: string;
+  ouvert: boolean;
+  heure_debut: string; // "HH:MM:SS"
+  heure_fin: string;
+}
+
+export interface ParametreNotification {
+  intervalle_ca_min: number;
+  alerte_ca_on: boolean;
+  alerte_stock_on: boolean;
+  bilan_jour_on: boolean;
+  seuil_ecart_caisse: number;
+  dernier_envoi_ca: string | null;
+  dernier_bilan_jour: string | null;
+}
+
 export interface ServiceModele {
   nom: string;
   categorie: string;
@@ -269,6 +287,28 @@ export const api = {
 
   modifierSecretariat: (id: number, donnees: Partial<Secretariat>) =>
     requete<Secretariat>(`/secretariats/${id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(donnees),
+    }),
+
+  // --- Plages horaires et paramètres de notification ---
+  getPlagesHoraires: (secretariatId: number) =>
+    requete<PlageHoraire[]>(`/secretariats/${secretariatId}/plages-horaires/`),
+  putPlagesHoraires: (
+    secretariatId: number,
+    plages: { jour: number; ouvert: boolean; heure_debut: string; heure_fin: string }[],
+  ) =>
+    requete<PlageHoraire[]>(`/secretariats/${secretariatId}/plages-horaires/`, {
+      method: "PUT",
+      body: JSON.stringify(plages),
+    }),
+  getParametresNotification: (secretariatId: number) =>
+    requete<ParametreNotification>(`/secretariats/${secretariatId}/parametres-notification/`),
+  patchParametresNotification: (
+    secretariatId: number,
+    donnees: Partial<ParametreNotification>,
+  ) =>
+    requete<ParametreNotification>(`/secretariats/${secretariatId}/parametres-notification/`, {
       method: "PATCH",
       body: JSON.stringify(donnees),
     }),

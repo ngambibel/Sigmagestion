@@ -491,7 +491,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 4.4 — Plages horaires et notification de CA périodique `[ ]`
+## Étape 4.4 — Plages horaires et notification de CA périodique `[~]`
 
 🎯 **Objectif** : **l'exigence phare** — le propriétaire reçoit son CA toutes les 2 heures pendant ses horaires.
 

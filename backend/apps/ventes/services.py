@@ -8,6 +8,7 @@ et sur les consommables (concurrence de saisie).
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
+from django.db.models import Count, F, Sum
 from django.utils import timezone
 
 from apps.caisse.models import StatutSession
@@ -173,3 +174,34 @@ def annuler_prestation(*, prestation, motif, auteur=None):
     prestation.motif_annulation = motif
     prestation.save(update_fields=["statut", "annulee_le", "motif_annulation"])
     return prestation
+
+
+def agreger_ca(secretariat, debut, fin) -> dict:
+    """Agrège les ventes VALIDÉES d'un secrétariat sur l'intervalle [debut, fin[.
+
+    Réutilisable par les notifications de CA (phase 4) et le tableau de bord (phase 5).
+    Renvoie : ca (XAF), cout (XAF), marge (XAF), nb_prestations, top_service (nom ou None).
+    """
+    prestations = Prestation.objects.filter(
+        secretariat=secretariat, statut=StatutPrestation.VALIDEE,
+        cree_le__gte=debut, cree_le__lt=fin,
+    )
+    totaux = prestations.aggregate(ca=Sum("montant_total"), nb=Count("id"))
+    lignes = LignePrestation.objects.filter(prestation__in=prestations)
+    cout = lignes.aggregate(
+        total=Sum(F("cout_unitaire") * F("quantite")),
+    )["total"] or 0
+    top = (
+        lignes.values("nom_service")
+        .annotate(total=Sum(F("prix_unitaire") * F("quantite")))
+        .order_by("-total")
+        .first()
+    )
+    ca = totaux["ca"] or 0
+    return {
+        "ca": ca,
+        "cout": int(cout),
+        "marge": ca - int(cout),
+        "nb_prestations": totaux["nb"] or 0,
+        "top_service": top["nom_service"] if top else None,
+    }
