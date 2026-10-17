@@ -257,6 +257,25 @@ export interface SaisieLigne {
   quantite: number;
 }
 
+export interface TableauDeBord {
+  ca_jour: number;
+  ca_veille: number;
+  variation_pct: number | null;
+  nb_prestations_jour: number;
+  marge_jour: number;
+  serie_30j: { date: string; ca: number }[];
+  par_service: { nom_service: string; ca: number }[];
+  top_services: { nom_service: string; ca: number }[];
+  par_employe: { employe: string; ca: number; nb: number }[];
+  consommables_sous_seuil: {
+    id: number;
+    nom: string;
+    qte_stock: string;
+    seuil_alerte: string;
+    unite_mesure: string;
+  }[];
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -453,6 +472,9 @@ export const api = {
     requete<Notification>(`/notifications/${id}/lire/`, { method: "POST", body: "{}" }),
   archiverNotification: (id: number) =>
     requete<Notification>(`/notifications/${id}/archiver/`, { method: "POST", body: "{}" }),
+
+  // --- Tableau de bord ---
+  tableauDeBord: () => requete<TableauDeBord>("/tableau-de-bord/"),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {

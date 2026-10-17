@@ -529,7 +529,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 5 — Tableau de bord et rapports (Lot 5)
 
-## Étape 5.1 — Tableau de bord propriétaire `[ ]`
+## Étape 5.1 — Tableau de bord propriétaire `[~]`
 
 🎯 **Objectif** : piloter l'activité d'un coup d'œil.
 
