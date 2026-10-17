@@ -77,6 +77,90 @@ class TableauDeBordTests(APITestCase):
         self.assertEqual(reponse.status_code, status.HTTP_403_FORBIDDEN)
 
 
+class RapportsTests(APITestCase):
+    def setUp(self):
+        self.proprio = Utilisateur.objects.create_user(
+            telephone="+237600000220", nom="Awa", password="MotDePasseP1", role=Role.PROPRIETAIRE,
+        )
+        self.sec = Secretariat.objects.create(nom="S", code="RAP01", proprietaire=self.proprio)
+        self.proprio.secretariat = self.sec
+        self.proprio.save(update_fields=["secretariat"])
+        self.service = Service.objects.create(secretariat=self.sec, nom="Photocopie", prix=50)
+        self.session = SessionCaisse.objects.create(
+            secretariat=self.sec, employe=self.proprio, fond_initial=0,
+        )
+        self._n = 0
+
+    def _vente(self, montant, mode="especes", cout_u=10, qte=1):
+        self._n += 1
+        p = Prestation.objects.create(
+            secretariat=self.sec, session=self.session, numero=f"RAP01-{self._n:04d}",
+            employe=self.proprio, mode_paiement=mode, montant_total=montant,
+        )
+        LignePrestation.objects.create(
+            prestation=p, service=self.service, nom_service="Photocopie",
+            prix_unitaire=montant // qte, quantite=qte, cout_unitaire=cout_u,
+        )
+        return p
+
+    def test_rapport_ventes_totaux_et_filtre_mode(self):
+        self._vente(1000, "especes", cout_u=100, qte=1)
+        self._vente(500, "momo", cout_u=50, qte=1)
+        self.client.force_authenticate(self.proprio)
+        d = self.client.get("/api/v1/rapports/ventes/").data
+        self.assertEqual(d["totaux"]["ca_total"], 1500)
+        self.assertEqual(d["totaux"]["marge_total"], 1500 - 150)
+        self.assertEqual(len(d["lignes"]), 2)
+        # Filtre par mode de règlement
+        d2 = self.client.get("/api/v1/rapports/ventes/?mode_reglement=momo").data
+        self.assertEqual(len(d2["lignes"]), 1)
+        self.assertEqual(d2["totaux"]["ca_total"], 500)
+
+    def test_rapport_rentabilite_par_service(self):
+        self._vente(1000, cout_u=200, qte=4)  # ca 1000, cout 800
+        self.client.force_authenticate(self.proprio)
+        d = self.client.get("/api/v1/rapports/rentabilite/").data
+        ligne = d["lignes"][0]
+        self.assertEqual(ligne["service"], "Photocopie")
+        self.assertEqual(ligne["ca"], 1000)
+        self.assertEqual(ligne["cout"], 800)
+        self.assertEqual(ligne["marge"], 200)
+        self.assertEqual(ligne["marge_pct"], 20)
+
+    def test_rapport_stock_valorisation(self):
+        from apps.stocks.models import Consommable
+        Consommable.objects.create(
+            secretariat=self.sec, nom="Papier A4", unite_mesure="feuille",
+            prix_achat=7, qte_stock=100, seuil_alerte=50,
+        )
+        self.client.force_authenticate(self.proprio)
+        d = self.client.get("/api/v1/rapports/stock/").data
+        self.assertEqual(d["totaux"]["valorisation_totale"], 700)  # 100 × 7
+
+    def test_export_csv(self):
+        self._vente(1000)
+        self.client.force_authenticate(self.proprio)
+        r = self.client.get("/api/v1/rapports/ventes/?export=csv")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIn("text/csv", r["Content-Type"])
+        self.assertIn("attachment", r["Content-Disposition"])
+        self.assertIn("N° ticket", r.content.decode("utf-8-sig"))
+
+    def test_rapports_reserves_au_proprietaire(self):
+        gerant = Utilisateur.objects.create_user(
+            telephone="+237600000221", nom="G", password="MotDePasseG1",
+            role=Role.GERANT, secretariat=self.sec,
+        )
+        self.client.force_authenticate(gerant)
+        r = self.client.get("/api/v1/rapports/ventes/")
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_rapport_inconnu_404(self):
+        self.client.force_authenticate(self.proprio)
+        r = self.client.get("/api/v1/rapports/inexistant/")
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class TableauDeBordEmployeTests(APITestCase):
     def setUp(self):
         self.proprio = Utilisateur.objects.create_user(

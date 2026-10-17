@@ -13,6 +13,7 @@ const BilanPage = lazy(() => import("./pages/bilan/BilanPage"));
 const MouvementsPage = lazy(() => import("./pages/stock/MouvementsPage"));
 const VentesPage = lazy(() => import("./pages/ventes/VentesPage"));
 const CataloguePage = lazy(() => import("./pages/catalogue/CataloguePage"));
+const RapportsPage = lazy(() => import("./pages/rapports/RapportsPage"));
 const ParametresPage = lazy(() => import("./pages/parametres/ParametresPage"));
 
 export default function App() {
@@ -57,6 +58,14 @@ export default function App() {
               element={
                 <RequireRole roles={["proprietaire", "super_admin"]}>
                   <CataloguePage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="rapports"
+              element={
+                <RequireRole roles={["proprietaire", "super_admin"]}>
+                  <RapportsPage />
                 </RequireRole>
               }
             />

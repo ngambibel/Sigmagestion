@@ -4,9 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.permissions import EstGerantOuPlus
+from core.permissions import EstGerantOuPlus, EstProprietaire
 from core.tenancy import secretariat_actif
 
+from .exports import rapport_en_csv
+from .rapports import RAPPORTS, parse_filtres
 from .services import tableau_de_bord, tableau_de_bord_employe
 
 
@@ -20,6 +22,32 @@ class TableauDeBordEmployeView(APIView):
         if secretariat is None:
             return Response({"detail": "Aucun secrétariat actif."}, status=400)
         return Response(tableau_de_bord_employe(request.user, secretariat))
+
+
+class RapportView(APIView):
+    """GET /rapports/{type}/ — rapports historiques (propriétaire).
+
+    `type` ∈ {ventes, rentabilite, stock, caisse}. Filtres : date_debut, date_fin,
+    service, employe, mode_reglement, statut. `?export=csv` renvoie un fichier CSV.
+    """
+
+    permission_classes = [EstProprietaire]
+
+    def get(self, request, type_rapport):
+        constructeur = RAPPORTS.get(type_rapport)
+        if constructeur is None:
+            return Response({"detail": "Rapport inconnu."}, status=404)
+        secretariat = secretariat_actif(request)
+        if secretariat is None:
+            return Response({"detail": "Aucun secrétariat actif."}, status=400)
+
+        filtres = parse_filtres(request.query_params)
+        rapport = constructeur(secretariat, filtres)
+
+        if request.query_params.get("export") == "csv":
+            nom = f"{type_rapport}-{secretariat.code}"
+            return rapport_en_csv(rapport, nom)
+        return Response(rapport)
 
 
 class TableauDeBordView(APIView):

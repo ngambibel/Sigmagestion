@@ -556,7 +556,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 5.3 — Rapports et exports `[ ]`
+## Étape 5.3 — Rapports et exports `[~]`
 
 🎯 **Objectif** : les rapports historiques.
 

@@ -312,6 +312,34 @@ export interface TableauDeBordEmploye {
   }[];
 }
 
+export interface Rapport {
+  titre: string;
+  colonnes: { cle: string; libelle: string }[];
+  lignes: Record<string, string | number>[];
+  totaux: Record<string, number | Record<string, number>>;
+}
+
+export type TypeRapport = "ventes" | "rentabilite" | "stock" | "caisse";
+
+/** Télécharge un rapport en CSV (fetch authentifié → blob → déclenchement du téléchargement). */
+export async function telechargerRapportCsv(type: TypeRapport, params: string, nomFichier: string) {
+  const token = useAuthStore.getState().accessToken;
+  const sep = params ? "&" : "";
+  const reponse = await fetch(`${BASE_URL}/rapports/${type}/?export=csv${sep}${params}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!reponse.ok) throw new ApiError(reponse.status, null);
+  const blob = await reponse.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${nomFichier}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -512,6 +540,10 @@ export const api = {
   // --- Tableau de bord ---
   tableauDeBord: () => requete<TableauDeBord>("/tableau-de-bord/"),
   tableauDeBordEmploye: () => requete<TableauDeBordEmploye>("/tableau-de-bord/employe/"),
+
+  // --- Rapports ---
+  getRapport: (type: TypeRapport, params: string) =>
+    requete<Rapport>(`/rapports/${type}/${params ? `?${params}` : ""}`),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {
