@@ -1,9 +1,15 @@
 import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { RequireAuth, RequireOnboarding, RequireRole } from "./app/guards";
+import {
+  RequireAuth,
+  RequireMotDePasseAJour,
+  RequireOnboarding,
+  RequireRole,
+} from "./app/guards";
 import { AppShell } from "./components/layout/AppShell";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import ChangerMotDePassePage from "./pages/auth/ChangerMotDePassePage";
 import InstallationPage from "./pages/InstallationPage";
 
 // Pages chargées paresseusement (découpage de code).
@@ -14,6 +20,7 @@ const MouvementsPage = lazy(() => import("./pages/stock/MouvementsPage"));
 const VentesPage = lazy(() => import("./pages/ventes/VentesPage"));
 const CataloguePage = lazy(() => import("./pages/catalogue/CataloguePage"));
 const RapportsPage = lazy(() => import("./pages/rapports/RapportsPage"));
+const EmployesPage = lazy(() => import("./pages/employes/EmployesPage"));
 const ParametresPage = lazy(() => import("./pages/parametres/ParametresPage"));
 
 export default function App() {
@@ -23,10 +30,13 @@ export default function App() {
       <Route path="/inscription" element={<RegisterPage />} />
 
       <Route element={<RequireAuth />}>
-        <Route path="/installation" element={<InstallationPage />} />
+        <Route path="/changer-mot-de-passe" element={<ChangerMotDePassePage />} />
 
-        <Route element={<RequireOnboarding />}>
-          <Route element={<AppShell />}>
+        <Route element={<RequireMotDePasseAJour />}>
+          <Route path="/installation" element={<InstallationPage />} />
+
+          <Route element={<RequireOnboarding />}>
+            <Route element={<AppShell />}>
             <Route index element={<CaissePage />} />
             <Route path="stock" element={<StockPage />} />
             <Route
@@ -70,6 +80,14 @@ export default function App() {
               }
             />
             <Route
+              path="employes"
+              element={
+                <RequireRole roles={["proprietaire", "super_admin"]}>
+                  <EmployesPage />
+                </RequireRole>
+              }
+            />
+            <Route
               path="parametres"
               element={
                 <RequireRole roles={["proprietaire", "super_admin"]}>
@@ -77,6 +95,7 @@ export default function App() {
                 </RequireRole>
               }
             />
+            </Route>
           </Route>
         </Route>
       </Route>

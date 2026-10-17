@@ -32,6 +32,12 @@ export function RequireOnboarding() {
   return doitConfigurer ? <Navigate to="/installation" replace /> : <Outlet />;
 }
 
+/** Impose le changement du mot de passe provisoire avant tout accès à l'app. */
+export function RequireMotDePasseAJour() {
+  const doitChanger = useAuthStore((s) => s.utilisateur?.doit_changer_mdp);
+  return doitChanger ? <Navigate to="/changer-mot-de-passe" replace /> : <Outlet />;
+}
+
 /** Restreint l'accès à certains rôles. */
 export function RequireRole({ roles, children }: { roles: string[]; children: ReactNode }) {
   const role = useAuthStore((s) => s.utilisateur?.role);

@@ -340,6 +340,31 @@ export async function telechargerRapportCsv(type: TypeRapport, params: string, n
   URL.revokeObjectURL(url);
 }
 
+export interface Employe {
+  id: number;
+  nom: string;
+  telephone: string;
+  role: string;
+  role_libelle: string;
+  is_active: boolean;
+  doit_changer_mdp: boolean;
+  date_joined: string;
+}
+
+export interface EmployeCree extends Employe {
+  mot_de_passe_provisoire: string;
+}
+
+export interface ActiviteEmploye {
+  employe: Employe;
+  ca_genere: number;
+  nb_prestations: number;
+  nb_annulations: number;
+  nb_sessions: number;
+  ecart_cumule: number;
+  nb_sessions_avec_ecart: number;
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -373,6 +398,22 @@ export const api = {
     }),
 
   moi: () => requete<Utilisateur>("/moi/"),
+
+  changerMotDePasse: (nouveau_mot_de_passe: string) =>
+    requete<{ detail: string }>("/moi/changer-mot-de-passe/", {
+      method: "POST",
+      body: JSON.stringify({ nouveau_mot_de_passe }),
+    }),
+
+  // --- Employés ---
+  listerEmployes: () => requete<Employe[]>("/employes/"),
+  creerEmploye: (donnees: { nom: string; telephone: string; role: string }) =>
+    requete<EmployeCree>("/employes/", { method: "POST", body: JSON.stringify(donnees) }),
+  desactiverEmploye: (id: number) =>
+    requete<Employe>(`/employes/${id}/desactiver/`, { method: "POST", body: "{}" }),
+  reactiverEmploye: (id: number) =>
+    requete<Employe>(`/employes/${id}/reactiver/`, { method: "POST", body: "{}" }),
+  activiteEmploye: (id: number) => requete<ActiviteEmploye>(`/employes/${id}/activite/`),
 
   deconnexion: (refresh: string) =>
     requete<null>("/auth/deconnexion/", {

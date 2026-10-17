@@ -575,7 +575,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 6 — Employés et clients (Lot 6)
 
-## Étape 6.1 — Gestion des employés `[ ]`
+## Étape 6.1 — Gestion des employés `[~]`
 
 🎯 **Objectif** : créer et gérer les comptes employés.
 
