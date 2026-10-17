@@ -509,7 +509,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 4.5 — Centre de notifications et réglages fins `[ ]`
+## Étape 4.5 — Centre de notifications et réglages fins `[~]`
 
 🎯 **Objectif** : consulter dans l'app les notifications (une push peut être manquée).
 

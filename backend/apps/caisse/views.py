@@ -50,6 +50,9 @@ class SessionCaisseViewSet(
             employe=request.user,
             fond_initial=serializer.validated_data.get("fond_initial", 0),
         )
+        from apps.notifications.tasks import notifier_session
+
+        notifier_session(session, ouverture=True)
         return Response(self.get_serializer(session).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"])

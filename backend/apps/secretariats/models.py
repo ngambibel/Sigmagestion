@@ -134,9 +134,18 @@ class ParametreNotification(models.Model):
     alerte_ca_on = models.BooleanField("bilan de CA périodique activé", default=True)
     alerte_stock_on = models.BooleanField("alerte de stock faible activée", default=True)
     bilan_jour_on = models.BooleanField("bilan de fin de journée activé", default=True)
+    alerte_ecart_caisse_on = models.BooleanField("alerte sur écart de caisse activée", default=True)
+    alerte_annulation_on = models.BooleanField("alerte sur annulation activée", default=True)
+    alerte_session_on = models.BooleanField(
+        "alerte ouverture / clôture de session activée", default=False,
+    )
+    ne_pas_deranger = models.BooleanField(
+        "ne pas déranger", default=False,
+        help_text="Les notifications restent visibles dans l'app mais ne sont pas envoyées en push.",
+    )
     seuil_ecart_caisse = models.PositiveIntegerField(
         "seuil d'alerte sur écart de caisse (XAF)", default=0,
-        help_text="0 = pas d'alerte sur l'écart de caisse.",
+        help_text="0 = alerte dès qu'il y a un écart ; sinon, seulement au-delà de ce montant.",
     )
     dernier_envoi_ca = models.DateTimeField("dernier bilan de CA envoyé", null=True, blank=True)
     dernier_bilan_jour = models.DateField("dernier bilan de journée envoyé", null=True, blank=True)

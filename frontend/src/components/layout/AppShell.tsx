@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "../../stores/auth";
 import { api } from "../../lib/api";
 import { entreesVisibles } from "./navigation";
+import { ClocheNotifications } from "../../features/notifications/ClocheNotifications";
 
 function lienClasses({ isActive }: { isActive: boolean }) {
   return [
@@ -32,13 +33,7 @@ export function AppShell() {
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-papier-creux bg-papier-surface px-4">
         <span className="font-display text-lg font-semibold">SigmaGestion</span>
         <div className="flex items-center gap-3">
-          <button
-            className="relative rounded-lg p-1 text-xl"
-            aria-label="Notifications"
-            title="Notifications (à venir)"
-          >
-            🔔
-          </button>
+          <ClocheNotifications />
           <button
             onClick={() => deconnexion.mutate()}
             className="text-sm text-encre-douce underline"

@@ -67,16 +67,102 @@ def envoyer_notification_push(abonnement_id: int, titre: str, corps: str, url: s
             raise
 
 
-def notifier_utilisateur(utilisateur, secretariat, *, type, titre, corps, url="/"):
-    """Persiste une notification et l'envoie en push sur tous les appareils de l'utilisateur."""
+def _type_actif(parametre, type) -> bool:
+    """Indique si l'utilisateur a laissé ce type de notification activé (M6.6)."""
+    from .models import TypeNotification
+
+    bascules = {
+        TypeNotification.STOCK_FAIBLE: parametre.alerte_stock_on,
+        TypeNotification.BILAN_CA: parametre.alerte_ca_on,
+        TypeNotification.ECART_CAISSE: parametre.alerte_ecart_caisse_on,
+        TypeNotification.ANNULATION: parametre.alerte_annulation_on,
+        TypeNotification.SESSION: parametre.alerte_session_on,
+    }
+    return bascules.get(type, True)
+
+
+def notifier_utilisateur(utilisateur, secretariat, *, type, titre, corps, url="/", forcer=False):
+    """Persiste une notification (centre M6.5) et l'envoie en push selon les réglages.
+
+    - Si le type est désactivé (M6.6), on n'enregistre rien et on n'envoie rien.
+    - Si « Ne pas déranger » est actif, la notification est enregistrée dans le centre
+      mais aucun push n'est émis (une push manquée se rattrape dans l'app).
+    - `forcer=True` (ex. notification de test) court-circuite ces réglages.
+    """
+    from apps.secretariats.models import ParametreNotification
+
     from .models import AbonnementPush, Notification
+
+    parametre, _ = ParametreNotification.objects.get_or_create(secretariat=secretariat)
+    if not forcer and not _type_actif(parametre, type):
+        return
 
     Notification.objects.create(
         secretariat=secretariat, utilisateur=utilisateur,
         type=type, titre=titre, corps=corps, url=url,
     )
+    if not forcer and parametre.ne_pas_deranger:
+        return  # mode silencieux : pas de push
+
     for abonnement in AbonnementPush.objects.filter(utilisateur=utilisateur):
         envoyer_notification_push.delay(abonnement.id, titre, corps, url)
+
+
+def notifier_annulation(prestation, auteur=None):
+    """Prévient le propriétaire qu'une prestation a été annulée (M6.4)."""
+    from .models import TypeNotification
+
+    par_qui = f" par {auteur.nom}" if auteur else ""
+    notifier_utilisateur(
+        prestation.secretariat.proprietaire, prestation.secretariat,
+        type=TypeNotification.ANNULATION,
+        titre="Prestation annulée",
+        corps=(
+            f"Ticket {prestation.numero} ({_xaf(prestation.montant_total)} F) annulé{par_qui} : "
+            f"{prestation.motif_annulation}"
+        ),
+        url="/ventes",
+    )
+
+
+def notifier_ecart_caisse(session):
+    """Prévient le propriétaire d'un écart de caisse au-delà du seuil configuré (M6.4)."""
+    from apps.secretariats.models import ParametreNotification
+
+    from .models import TypeNotification
+
+    if not session.ecart:
+        return
+    parametre, _ = ParametreNotification.objects.get_or_create(secretariat=session.secretariat)
+    if abs(session.ecart) < parametre.seuil_ecart_caisse:
+        return  # écart sous le seuil toléré
+    nature = "manquant" if session.ecart < 0 else "excédent"
+    notifier_utilisateur(
+        session.secretariat.proprietaire, session.secretariat,
+        type=TypeNotification.ECART_CAISSE,
+        titre="Écart de caisse",
+        corps=(
+            f"Session de {session.employe.nom} clôturée : écart de "
+            f"{_xaf(abs(session.ecart))} F ({nature})."
+        ),
+        url="/bilan",
+    )
+
+
+def notifier_session(session, *, ouverture: bool):
+    """Prévient le propriétaire de l'ouverture / clôture d'une session (M6.4, option)."""
+    from .models import TypeNotification
+
+    if ouverture:
+        titre = "Session ouverte"
+        corps = f"{session.employe.nom} a ouvert une session (fond {_xaf(session.fond_initial)} F)."
+    else:
+        titre = "Session clôturée"
+        corps = f"{session.employe.nom} a clôturé sa session de caisse."
+    notifier_utilisateur(
+        session.secretariat.proprietaire, session.secretariat,
+        type=TypeNotification.SESSION, titre=titre, corps=corps, url="/bilan",
+    )
 
 
 @shared_task(ignore_result=True)

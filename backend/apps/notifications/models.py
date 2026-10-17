@@ -41,6 +41,8 @@ class TypeNotification(models.TextChoices):
     STOCK_FAIBLE = "stock_faible", "Stock faible"
     BILAN_CA = "bilan_ca", "Bilan de chiffre d'affaires"
     ECART_CAISSE = "ecart_caisse", "Écart de caisse"
+    ANNULATION = "annulation", "Annulation de prestation"
+    SESSION = "session", "Ouverture / clôture de session"
     AUTRE = "autre", "Autre"
 
 
@@ -60,12 +62,17 @@ class Notification(models.Model):
     corps = models.CharField(max_length=500)
     url = models.CharField(max_length=200, blank=True, default="/")
     lu = models.BooleanField("lue", default=False)
+    archivee = models.BooleanField("archivée", default=False)
     cree_le = models.DateTimeField("créé le", auto_now_add=True)
 
     class Meta:
         verbose_name = "notification"
         verbose_name_plural = "notifications"
         ordering = ["-cree_le"]
+        indexes = [
+            # Compteur de la cloche : non lues d'un utilisateur (RG index §8.2).
+            models.Index(fields=["utilisateur", "lu", "archivee"]),
+        ]
 
     def __str__(self):
         return f"{self.titre} → {self.utilisateur.nom}"

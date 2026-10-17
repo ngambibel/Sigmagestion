@@ -11,6 +11,6 @@ class AbonnementPushAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ("titre", "utilisateur", "type", "lu", "cree_le")
-    list_filter = ("type", "lu")
+    list_display = ("titre", "utilisateur", "type", "lu", "archivee", "cree_le")
+    list_filter = ("type", "lu", "archivee")
     search_fields = ("titre", "corps")

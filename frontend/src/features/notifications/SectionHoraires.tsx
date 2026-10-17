@@ -95,6 +95,10 @@ export function SectionHoraires() {
         alerte_ca_on: parametres.alerte_ca_on,
         alerte_stock_on: parametres.alerte_stock_on,
         bilan_jour_on: parametres.bilan_jour_on,
+        alerte_ecart_caisse_on: parametres.alerte_ecart_caisse_on,
+        alerte_annulation_on: parametres.alerte_annulation_on,
+        alerte_session_on: parametres.alerte_session_on,
+        ne_pas_deranger: parametres.ne_pas_deranger,
       });
     },
     onSuccess: () => {
@@ -141,6 +145,16 @@ export function SectionHoraires() {
 
       <div className="mb-4 border-t border-papier-creux pt-2">
         <Bascule
+          actif={parametres.ne_pas_deranger}
+          onChange={(v) => setParametres({ ...parametres, ne_pas_deranger: v })}
+        >
+          Ne pas déranger (les notifications restent dans l'app, sans push)
+        </Bascule>
+      </div>
+
+      <div className="mb-4 border-t border-papier-creux pt-2">
+        <h3 className="mb-1 text-sm font-medium text-encre">Types de notification</h3>
+        <Bascule
           actif={parametres.alerte_ca_on}
           onChange={(v) => setParametres({ ...parametres, alerte_ca_on: v })}
         >
@@ -157,6 +171,24 @@ export function SectionHoraires() {
           onChange={(v) => setParametres({ ...parametres, alerte_stock_on: v })}
         >
           Alerte de stock faible
+        </Bascule>
+        <Bascule
+          actif={parametres.alerte_ecart_caisse_on}
+          onChange={(v) => setParametres({ ...parametres, alerte_ecart_caisse_on: v })}
+        >
+          Écart de caisse à la clôture
+        </Bascule>
+        <Bascule
+          actif={parametres.alerte_annulation_on}
+          onChange={(v) => setParametres({ ...parametres, alerte_annulation_on: v })}
+        >
+          Annulation d'une prestation
+        </Bascule>
+        <Bascule
+          actif={parametres.alerte_session_on}
+          onChange={(v) => setParametres({ ...parametres, alerte_session_on: v })}
+        >
+          Ouverture / clôture de session
         </Bascule>
       </div>
 

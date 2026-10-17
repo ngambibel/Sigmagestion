@@ -173,6 +173,13 @@ def annuler_prestation(*, prestation, motif, auteur=None):
     prestation.annulee_le = timezone.now()
     prestation.motif_annulation = motif
     prestation.save(update_fields=["statut", "annulee_le", "motif_annulation"])
+
+    def _prevenir():
+        from apps.notifications.tasks import notifier_annulation
+
+        notifier_annulation(prestation, auteur)
+
+    transaction.on_commit(_prevenir)
     return prestation
 
 

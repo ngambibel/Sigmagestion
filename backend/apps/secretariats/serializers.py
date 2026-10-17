@@ -41,7 +41,8 @@ class ParametreNotificationSerializer(serializers.ModelSerializer):
         model = ParametreNotification
         fields = [
             "intervalle_ca_min", "alerte_ca_on", "alerte_stock_on",
-            "bilan_jour_on", "seuil_ecart_caisse",
+            "bilan_jour_on", "alerte_ecart_caisse_on", "alerte_annulation_on",
+            "alerte_session_on", "ne_pas_deranger", "seuil_ecart_caisse",
             "dernier_envoi_ca", "dernier_bilan_jour",
         ]
         read_only_fields = ["dernier_envoi_ca", "dernier_bilan_jour"]

@@ -114,9 +114,30 @@ export interface ParametreNotification {
   alerte_ca_on: boolean;
   alerte_stock_on: boolean;
   bilan_jour_on: boolean;
+  alerte_ecart_caisse_on: boolean;
+  alerte_annulation_on: boolean;
+  alerte_session_on: boolean;
+  ne_pas_deranger: boolean;
   seuil_ecart_caisse: number;
   dernier_envoi_ca: string | null;
   dernier_bilan_jour: string | null;
+}
+
+export interface Notification {
+  id: number;
+  type: string;
+  type_libelle: string;
+  titre: string;
+  corps: string;
+  url: string;
+  lu: boolean;
+  archivee: boolean;
+  cree_le: string;
+}
+
+export interface ListeNotifications {
+  resultats: Notification[];
+  non_lues: number;
 }
 
 export interface ServiceModele {
@@ -418,6 +439,20 @@ export const api = {
     requete<null>("/push/abonnement/", { method: "DELETE", body: JSON.stringify({ endpoint }) }),
   envoyerPushTest: () =>
     requete<{ envoyees: number }>("/push/test/", { method: "POST", body: "{}" }),
+
+  // --- Centre de notifications ---
+  listerNotifications: (archivees?: "seules" | "1") => {
+    const suffixe = archivees ? `?archivees=${archivees}` : "";
+    return requete<ListeNotifications>(`/notifications/${suffixe}`);
+  },
+  compteurNotifications: () =>
+    requete<{ non_lues: number }>("/notifications/compteur/"),
+  toutLireNotifications: () =>
+    requete<{ marquees: number }>("/notifications/tout-lire/", { method: "POST", body: "{}" }),
+  lireNotification: (id: number) =>
+    requete<Notification>(`/notifications/${id}/lire/`, { method: "POST", body: "{}" }),
+  archiverNotification: (id: number) =>
+    requete<Notification>(`/notifications/${id}/archiver/`, { method: "POST", body: "{}" }),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {

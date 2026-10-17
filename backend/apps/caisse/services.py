@@ -58,4 +58,12 @@ def cloturer_session(session: SessionCaisse, *, montant_compte: int, commentaire
             "commentaire", "statut", "cloturee_le",
         ]
     )
+
+    def _prevenir():
+        from apps.notifications.tasks import notifier_ecart_caisse, notifier_session
+
+        notifier_ecart_caisse(session)
+        notifier_session(session, ouverture=False)
+
+    transaction.on_commit(_prevenir)
     return session
