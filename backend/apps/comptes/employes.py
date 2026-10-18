@@ -106,6 +106,15 @@ class EmployeViewSet(
         employe.is_active = False
         employe.save(update_fields=["is_active"])
 
+        from apps.audit.models import ActionAudit
+        from apps.audit.services import tracer
+
+        tracer(
+            action=ActionAudit.COMPTE_DESACTIVE, instance=employe, auteur=request.user,
+            secretariat=employe.secretariat, avant={"is_active": True},
+            apres={"is_active": False}, request=request, objet_repr=employe.nom,
+        )
+
         # Clôture automatique de la session ouverte éventuelle (M8.2).
         session = SessionCaisse.objects.filter(
             employe=employe, statut=StatutSession.OUVERTE,
@@ -126,6 +135,15 @@ class EmployeViewSet(
         employe = self.get_object()
         employe.is_active = True
         employe.save(update_fields=["is_active"])
+
+        from apps.audit.models import ActionAudit
+        from apps.audit.services import tracer
+
+        tracer(
+            action=ActionAudit.COMPTE_REACTIVE, instance=employe, auteur=request.user,
+            secretariat=employe.secretariat, avant={"is_active": False},
+            apres={"is_active": True}, request=request, objet_repr=employe.nom,
+        )
         return Response(EmployeSerializer(employe).data)
 
     @action(detail=True, methods=["get"])

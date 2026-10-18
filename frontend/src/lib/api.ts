@@ -394,6 +394,20 @@ export interface HistoriqueClient {
   credits_non_regles: number;
 }
 
+export interface AuditEntree {
+  id: number;
+  action: string;
+  action_libelle: string;
+  modele: string;
+  objet_id: string;
+  objet_repr: string;
+  valeurs_avant: Record<string, unknown> | null;
+  valeurs_apres: Record<string, unknown> | null;
+  auteur_nom: string;
+  ip: string | null;
+  cree_le: string;
+}
+
 export interface MouvementStock {
   id: number;
   consommable: number;
@@ -639,6 +653,10 @@ export const api = {
       body: JSON.stringify({ montant, commentaire }),
     }),
   historiqueClient: (id: number) => requete<HistoriqueClient>(`/clients/${id}/historique/`),
+
+  // --- Journal d'audit ---
+  listerAudit: (action?: string) =>
+    requete<AuditEntree[]>(`/audit/${action ? `?action=${action}` : ""}`),
 
   // --- Journal des mouvements ---
   listerMouvements: (filtres?: { consommable?: number; type?: string }) => {

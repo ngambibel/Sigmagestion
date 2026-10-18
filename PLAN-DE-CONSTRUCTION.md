@@ -664,7 +664,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 🔨 Thème sombre (papier `#101215`), audit d'accessibilité (contraste AA/AAA, focus clavier, ARIA, navigation clavier de la grille de services).
 ✅ Tu bascules en thème sombre, tu navigues au clavier. Score Lighthouse Accessibilité ≥ 95.
 
-## Étape 8.2 — Journal d'audit `[ ]`
+## Étape 8.2 — Journal d'audit `[~]`
 
 🔨 App `audit` : middleware, `JournalAudit` (opérations sensibles avec valeurs avant/après, RG-16), endpoint `/audit/`.
 ✅ Tu changes un prix / fais un ajustement → l'action apparaît dans le journal d'audit avec l'avant/après.

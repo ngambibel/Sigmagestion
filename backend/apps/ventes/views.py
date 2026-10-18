@@ -150,4 +150,15 @@ class PrestationViewSet(
             )
         except VenteError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.audit.models import ActionAudit
+        from apps.audit.services import tracer
+
+        tracer(
+            action=ActionAudit.PRESTATION_ANNULEE, instance=prestation, auteur=request.user,
+            avant={"statut": "validee"},
+            apres={"statut": "annulee", "motif": prestation.motif_annulation,
+                   "montant": prestation.montant_total},
+            request=request, objet_repr=prestation.numero,
+        )
         return Response(PrestationSerializer(prestation).data)

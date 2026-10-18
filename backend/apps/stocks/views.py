@@ -92,6 +92,16 @@ class ConsommableViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         consommable.refresh_from_db()
+
+        from apps.audit.models import ActionAudit
+        from apps.audit.services import tracer
+
+        tracer(
+            action=ActionAudit.STOCK_AJUSTE, instance=consommable, auteur=request.user,
+            avant={"stock": str(mouvement.stock_avant)},
+            apres={"stock": str(mouvement.stock_apres), "motif": mouvement.motif},
+            request=request, objet_repr=consommable.nom,
+        )
         return Response(
             {
                 "mouvement": MouvementStockSerializer(mouvement).data,

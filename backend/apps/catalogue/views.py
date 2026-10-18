@@ -30,6 +30,19 @@ class ServiceViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
             return [EstProprietaire()]
         return [IsAuthenticated()]
 
+    def perform_update(self, serializer):
+        prix_avant = serializer.instance.prix
+        service = serializer.save()
+        if service.prix != prix_avant:
+            from apps.audit.models import ActionAudit
+            from apps.audit.services import tracer
+
+            tracer(
+                action=ActionAudit.PRIX_MODIFIE, instance=service, auteur=self.request.user,
+                avant={"prix": prix_avant}, apres={"prix": service.prix}, request=self.request,
+                objet_repr=service.nom,
+            )
+
     @action(detail=True, methods=["get", "put"])
     def nomenclature(self, request, pk=None):
         """GET/PUT /services/{id}/nomenclature/ — recette du service."""
