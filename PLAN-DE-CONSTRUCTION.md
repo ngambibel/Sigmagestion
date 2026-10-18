@@ -611,7 +611,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 7 — Hors ligne et PWA (Lot 7)
 
-## Étape 7.1 — PWA installable `[ ]`
+## Étape 7.1 — PWA installable `[~]`
 
 🎯 **Objectif** : l'app s'installe sur l'écran d'accueil.
 

@@ -35,7 +35,8 @@ export function usePush() {
     if (!supporte) return;
     setEnCours(true);
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
+      // Le service worker est enregistré au démarrage par le plugin PWA.
+      const registration = await navigator.serviceWorker.ready;
       const perm = await Notification.requestPermission();
       setPermission(perm as EtatPermission);
       if (perm !== "granted") return;
