@@ -625,7 +625,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 7.2 — Lecture et écriture hors ligne `[ ]`
+## Étape 7.2 — Lecture et écriture hors ligne `[~]`
 
 🎯 **Objectif** : vendre même sans réseau, **zéro perte de saisie**.
 

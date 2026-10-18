@@ -24,7 +24,7 @@ class PrestationSerializer(serializers.ModelSerializer):
         fields = [
             "id", "numero", "statut", "mode_paiement", "client", "nom_client", "remise",
             "montant_total", "montant_recu", "monnaie_rendue", "employe_nom", "lignes",
-            "annulee_le", "motif_annulation", "cree_le",
+            "client_uuid", "annulee_le", "motif_annulation", "cree_le",
         ]
 
 
@@ -43,6 +43,7 @@ class PrestationCreationSerializer(serializers.Serializer):
     montant_recu = serializers.IntegerField(min_value=0, required=False, allow_null=True)
     nom_client = serializers.CharField(required=False, allow_blank=True, default="")
     client = serializers.IntegerField(required=False, allow_null=True)
+    client_uuid = serializers.UUIDField(required=False, allow_null=True)
 
     def validate_lignes(self, valeur):
         if not valeur:

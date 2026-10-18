@@ -211,6 +211,24 @@ class EncaissementTests(APITestCase):
         self.papier.refresh_from_db()
         self.assertEqual(float(self.papier.qte_stock), 994.0)  # 1000 - 6
 
+    def test_client_uuid_idempotent(self):
+        import uuid
+        u = str(uuid.uuid4())
+        payload = {
+            "lignes": [{"service": self.photocopie.id, "quantite": 10}],
+            "mode_paiement": "especes", "montant_recu": 1000, "client_uuid": u,
+        }
+        r1 = self.client.post("/api/v1/prestations/", payload, format="json")
+        r2 = self.client.post("/api/v1/prestations/", payload, format="json")
+        self.assertEqual(r1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r2.status_code, status.HTTP_201_CREATED)
+        from apps.ventes.models import Prestation
+        self.assertEqual(Prestation.objects.filter(client_uuid=u).count(), 1)
+        self.assertEqual(r1.data["prestation"]["id"], r2.data["prestation"]["id"])
+        # Le stock n'a été décrémenté qu'une fois (10 feuilles).
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), 990.0)
+
     def test_recto_verso_sans_flag_nomenclature_ne_divise_pas(self):
         # Le flag n'est pas posé sur la nomenclature → recto-verso sans effet sur les feuilles.
         r = self._vendre(

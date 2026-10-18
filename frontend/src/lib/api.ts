@@ -254,6 +254,8 @@ export interface Prestation {
 export interface ResultatEncaissement {
   prestation: Prestation;
   alertes_stock: Consommable[];
+  /** Vrai si la vente a été mise en file hors ligne (pas encore synchronisée). */
+  hors_ligne?: boolean;
 }
 
 export interface SaisieLigne {
@@ -567,6 +569,7 @@ export const api = {
     montant_recu?: number | null;
     nom_client?: string;
     client?: number | null;
+    client_uuid?: string;
   }) =>
     requete<ResultatEncaissement>("/prestations/", {
       method: "POST",

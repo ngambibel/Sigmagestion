@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type ResultatEncaissement } from "../../lib/api";
+import { chargerAvecCache } from "../../lib/offline";
 import { EnTetePage } from "../../components/layout/EnTetePage";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -62,17 +63,29 @@ function RecuToast({
   onVoirRecu: () => void;
 }) {
   const p = recu.prestation;
+  const couleur = recu.hors_ligne ? "bg-jaune" : "bg-valide";
   return (
     <div className="fixed inset-x-0 top-16 z-40 mx-auto max-w-md px-4">
-      <div className="rounded-2xl bg-valide p-4 text-white shadow-lg">
+      <div className={`rounded-2xl ${couleur} p-4 text-white shadow-lg`}>
         <div className="flex items-start justify-between">
           <div>
-            <p className="font-medium">Encaissé — ticket {p.numero}</p>
-            {p.monnaie_rendue != null && (
-              <p className="tabular text-sm">Rendre {p.monnaie_rendue.toLocaleString("fr-FR")} F</p>
-            )}
-            {p.mode_paiement === "credit" && p.nom_client && (
-              <p className="text-sm">Crédit — {p.nom_client}</p>
+            {recu.hors_ligne ? (
+              <>
+                <p className="font-medium">Vente enregistrée hors ligne</p>
+                <p className="tabular text-sm">
+                  {p.montant_total.toLocaleString("fr-FR")} F · en attente de synchronisation
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">Encaissé — ticket {p.numero}</p>
+                {p.monnaie_rendue != null && (
+                  <p className="tabular text-sm">Rendre {p.monnaie_rendue.toLocaleString("fr-FR")} F</p>
+                )}
+                {p.mode_paiement === "credit" && p.nom_client && (
+                  <p className="text-sm">Crédit — {p.nom_client}</p>
+                )}
+              </>
             )}
           </div>
           <button onClick={onFermer} className="text-white/80" aria-label="Fermer">✕</button>
@@ -82,9 +95,11 @@ function RecuToast({
             Stock bas : {recu.alertes_stock.map((a) => a.nom).join(", ")}
           </div>
         )}
-        <button onClick={onVoirRecu} className="mt-2 text-sm font-medium text-white underline">
-          Voir le reçu
-        </button>
+        {!recu.hors_ligne && (
+          <button onClick={onVoirRecu} className="mt-2 text-sm font-medium text-white underline">
+            Voir le reçu
+          </button>
+        )}
       </div>
     </div>
   );
@@ -159,7 +174,10 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
 }
 
 export default function CaissePage() {
-  const session = useQuery({ queryKey: ["session-active"], queryFn: api.sessionActive });
+  const session = useQuery({
+    queryKey: ["session-active"],
+    queryFn: () => chargerAvecCache("session-active", api.sessionActive),
+  });
 
   return (
     <div>

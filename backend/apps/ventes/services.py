@@ -34,8 +34,15 @@ def _generer_numero(secretariat) -> str:
 @transaction.atomic
 def enregistrer_prestation(
     *, session, lignes_saisie, mode_paiement, remise=0, montant_recu=None,
-    nom_client="", client=None, auteur=None,
+    nom_client="", client=None, client_uuid=None, auteur=None,
 ):
+    # Idempotence (RG §8.2) : si ce client_uuid a déjà été enregistré, on renvoie
+    # la prestation existante sans rien recréer (rejeu de synchro hors ligne).
+    if client_uuid:
+        existante = Prestation.objects.filter(client_uuid=client_uuid).first()
+        if existante is not None:
+            return existante, []
+
     if session.statut != StatutSession.OUVERTE:
         raise VenteError("La session de caisse n'est pas ouverte.")
 
@@ -135,6 +142,7 @@ def enregistrer_prestation(
         employe=auteur, mode_paiement=mode_paiement, remise=remise,
         montant_total=montant_total, montant_recu=montant_recu_val, monnaie_rendue=monnaie,
         nom_client=nom_client, client=client if mode_paiement == ModePaiement.CREDIT else None,
+        client_uuid=client_uuid or None,
     )
     if mode_paiement == ModePaiement.CREDIT:
         client.encours += montant_total

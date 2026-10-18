@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "../../components/ui/Modal";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
-import { api, ApiError, type ResultatEncaissement } from "../../lib/api";
+import { api, ApiError, type Prestation, type ResultatEncaissement } from "../../lib/api";
 import { useTicketStore, totalTicket } from "../../stores/ticket";
+import { enfilerVente } from "../../lib/offline";
+import { useOnline } from "../offline/useOffline";
 
 const MODES = [
   { valeur: "especes", libelle: "Espèces" },
@@ -46,13 +48,25 @@ export function EncaissementModal({
     },
   });
 
+  const enLigne = useOnline();
   const monnaie = mode === "especes" ? Math.max(0, montantRecu - total) : 0;
   const insuffisant = mode === "especes" && montantRecu < total;
   const clientManquant = mode === "credit" && !clientId;
 
+  function resultatHorsLigne(): ResultatEncaissement {
+    const prestation = {
+      id: 0, numero: "Hors ligne", statut: "validee", mode_paiement: mode,
+      client: mode === "credit" ? clientId : null, nom_client: "", remise,
+      montant_total: total, montant_recu: mode === "especes" ? Number(montantRecu) : null,
+      monnaie_rendue: mode === "especes" ? monnaie : null, employe_nom: "", lignes: [],
+      client_uuid: null, annulee_le: null, motif_annulation: "", cree_le: new Date().toISOString(),
+    } as unknown as Prestation;
+    return { prestation, alertes_stock: [], hors_ligne: true };
+  }
+
   const encaisser = useMutation({
-    mutationFn: () =>
-      api.enregistrerPrestation({
+    mutationFn: async (): Promise<ResultatEncaissement> => {
+      const base = {
         lignes: lignes.map((l) => ({
           service: l.serviceId,
           quantite: l.quantite,
@@ -63,7 +77,23 @@ export function EncaissementModal({
         remise,
         montant_recu: mode === "especes" ? Number(montantRecu) : null,
         client: mode === "credit" ? clientId : null,
-      }),
+      };
+      const resume = { total, nb_lignes: lignes.length, mode };
+
+      // Hors ligne : on met en file (zéro perte de saisie), synchro plus tard.
+      if (!enLigne) {
+        await enfilerVente(base, resume);
+        return resultatHorsLigne();
+      }
+      try {
+        return await api.enregistrerPrestation({ ...base, client_uuid: crypto.randomUUID() });
+      } catch (e) {
+        // Erreur serveur (stock, validation…) → on la remonte. Panne réseau → on met en file.
+        if (e instanceof ApiError) throw e;
+        await enfilerVente(base, resume);
+        return resultatHorsLigne();
+      }
+    },
     onSuccess: async (resultat) => {
       vider();
       await queryClient.invalidateQueries({ queryKey: ["consommables"] });

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Service } from "../../lib/api";
+import { chargerAvecCache } from "../../lib/offline";
 import { useTicketStore } from "../../stores/ticket";
 
 // Couleur de repli déterministe quand le service n'a pas d'image.
@@ -25,7 +26,10 @@ function Vignette({ service }: { service: Service }) {
 }
 
 export function TuilesServices() {
-  const services = useQuery({ queryKey: ["services"], queryFn: api.listerServices });
+  const services = useQuery({
+    queryKey: ["services"],
+    queryFn: () => chargerAvecCache("services", api.listerServices),
+  });
   const ajouter = useTicketStore((s) => s.ajouter);
   const [recherche, setRecherche] = useState("");
 

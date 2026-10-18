@@ -50,6 +50,11 @@ class Prestation(models.Model):
     annulee_le = models.DateTimeField(null=True, blank=True)
     motif_annulation = models.CharField(max_length=255, blank=True, default="")
 
+    # Idempotence de la synchronisation hors ligne (RG §8.2) : UUID généré côté client.
+    client_uuid = models.UUIDField(
+        "UUID client (idempotence)", null=True, blank=True, unique=True,
+    )
+
     cree_le = models.DateTimeField("créé le", auto_now_add=True)
 
     class Meta:

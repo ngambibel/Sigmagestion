@@ -5,6 +5,7 @@ import { useAuthStore } from "../../stores/auth";
 import { api } from "../../lib/api";
 import { entreesVisibles } from "./navigation";
 import { ClocheNotifications } from "../../features/notifications/ClocheNotifications";
+import { useOnline, useVentesEnAttente } from "../../features/offline/useOffline";
 
 function lienClasses({ isActive }: { isActive: boolean }) {
   return [
@@ -19,6 +20,8 @@ export function AppShell() {
   const reinitialiser = useAuthStore((s) => s.reinitialiser);
   const entrees = entreesVisibles(utilisateur?.role);
   const entreesMobile = entrees.filter((e) => e.mobile);
+  const enLigne = useOnline();
+  const nbEnAttente = useVentesEnAttente();
 
   const deconnexion = useMutation({
     mutationFn: async () => {
@@ -43,8 +46,17 @@ export function AppShell() {
         </div>
       </header>
 
-      {/* Bandeau hors-ligne (préparé, activé en phase 7) */}
-      {/* <div className="bg-jaune-clair px-4 py-1 text-sm text-jaune">Hors ligne…</div> */}
+      {/* Bandeau hors-ligne / synchronisation en attente */}
+      {(!enLigne || nbEnAttente > 0) && (
+        <div className="flex items-center justify-center gap-2 bg-jaune-clair px-4 py-1.5 text-sm text-jaune">
+          <span aria-hidden>{enLigne ? "⏳" : "📴"}</span>
+          {!enLigne
+            ? nbEnAttente > 0
+              ? `Hors ligne. ${nbEnAttente} vente(s) seront envoyées au retour du réseau.`
+              : "Hors ligne. Vos ventes seront enregistrées localement."
+            : `${nbEnAttente} vente(s) en attente de synchronisation.`}
+        </div>
+      )}
 
       <div className="mx-auto flex w-full max-w-6xl">
         {/* Barre latérale desktop */}
