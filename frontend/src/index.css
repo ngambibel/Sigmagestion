@@ -5,6 +5,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Jetons de couleur en canaux RGB (permet les opacités Tailwind : bg-cyan/90). */
+:root {
+  --papier: 246 246 243;
+  --papier-surface: 255 255 255;
+  --papier-creux: 236 236 230;
+  --encre: 20 22 26;
+  --encre-douce: 74 79 88;
+  --encre-pale: 134 141 152;
+  --cyan: 11 114 133;
+  --cyan-clair: 224 242 245;
+  --magenta: 176 42 91;
+  --magenta-clair: 251 231 238;
+  --jaune: 201 138 11;
+  --jaune-clair: 253 243 220;
+  --valide: 21 127 74;
+  --valide-clair: 226 244 234;
+}
+
+/* Thème sombre : papier #101215, encre #EDEEF0, accents éclaircis pour le contraste,
+   variantes « clair » devenant des fonds teintés sombres. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papier: 16 18 21;
+    --papier-surface: 24 27 32;
+    --papier-creux: 42 47 54;
+    --encre: 237 238 240;
+    --encre-douce: 178 184 193;
+    --encre-pale: 139 146 155;
+    --cyan: 56 170 190;
+    --cyan-clair: 16 46 54;
+    --magenta: 221 120 154;
+    --magenta-clair: 54 28 38;
+    --jaune: 224 170 70;
+    --jaune-clair: 56 44 20;
+    --valide: 74 185 125;
+    --valide-clair: 18 48 34;
+  }
+}
+
+:root[data-theme="dark"] {
+  --papier: 16 18 21;
+  --papier-surface: 24 27 32;
+  --papier-creux: 42 47 54;
+  --encre: 237 238 240;
+  --encre-douce: 178 184 193;
+  --encre-pale: 139 146 155;
+  --cyan: 56 170 190;
+  --cyan-clair: 16 46 54;
+  --magenta: 221 120 154;
+  --magenta-clair: 54 28 38;
+  --jaune: 224 170 70;
+  --jaune-clair: 56 44 20;
+  --valide: 74 185 125;
+  --valide-clair: 18 48 34;
+}
+
 @layer base {
   html {
     font-family: theme("fontFamily.sans");
@@ -19,6 +75,25 @@
   /* Les montants s'alignent verticalement (convention comptable) */
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Focus clavier visible partout : contour cyan 2 px, décalé de 2 px (DA §11.8). */
+  :focus-visible {
+    outline: 2px solid rgb(var(--cyan));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Respect de prefers-reduced-motion : on neutralise animations et transitions. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

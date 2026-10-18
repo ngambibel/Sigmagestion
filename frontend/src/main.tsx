@@ -6,9 +6,18 @@ import { queryClient } from "./lib/queryClient";
 import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from "virtual:pwa-register";
+import { appliquerTheme, useThemeStore } from "./stores/theme";
 
 // Enregistre le service worker (précache + push) ; met à jour automatiquement.
 registerSW({ immediate: true });
+
+// Applique le thème choisi (persisté) au démarrage, et suit l'OS en mode « système ».
+appliquerTheme(useThemeStore.getState().theme);
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", () => {
+    if (useThemeStore.getState().theme === "systeme") appliquerTheme("systeme");
+  });
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

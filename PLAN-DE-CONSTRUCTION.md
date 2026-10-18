@@ -659,7 +659,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 # PHASE 8 — Finition, tests et production (Lot 8)
 
-## Étape 8.1 — Thème sombre et accessibilité `[ ]`
+## Étape 8.1 — Thème sombre et accessibilité `[~]`
 
 🔨 Thème sombre (papier `#101215`), audit d'accessibilité (contraste AA/AAA, focus clavier, ARIA, navigation clavier de la grille de services).
 ✅ Tu bascules en thème sombre, tu navigues au clavier. Score Lighthouse Accessibilité ≥ 95.

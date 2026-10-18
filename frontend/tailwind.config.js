@@ -16,30 +16,30 @@ export default {
     extend: {
       colors: {
         papier: {
-          DEFAULT: "#F6F6F3",
-          surface: "#FFFFFF",
-          creux: "#ECECE6",
+          DEFAULT: "rgb(var(--papier) / <alpha-value>)",
+          surface: "rgb(var(--papier-surface) / <alpha-value>)",
+          creux: "rgb(var(--papier-creux) / <alpha-value>)",
         },
         encre: {
-          DEFAULT: "#14161A",
-          douce: "#4A4F58",
-          pale: "#868D98",
+          DEFAULT: "rgb(var(--encre) / <alpha-value>)",
+          douce: "rgb(var(--encre-douce) / <alpha-value>)",
+          pale: "rgb(var(--encre-pale) / <alpha-value>)",
         },
         cyan: {
-          DEFAULT: "#0B7285",
-          clair: "#E0F2F5",
+          DEFAULT: "rgb(var(--cyan) / <alpha-value>)",
+          clair: "rgb(var(--cyan-clair) / <alpha-value>)",
         },
         magenta: {
-          DEFAULT: "#B02A5B",
-          clair: "#FBE7EE",
+          DEFAULT: "rgb(var(--magenta) / <alpha-value>)",
+          clair: "rgb(var(--magenta-clair) / <alpha-value>)",
         },
         jaune: {
-          DEFAULT: "#C98A0B",
-          clair: "#FDF3DC",
+          DEFAULT: "rgb(var(--jaune) / <alpha-value>)",
+          clair: "rgb(var(--jaune-clair) / <alpha-value>)",
         },
         valide: {
-          DEFAULT: "#157F4A",
-          clair: "#E2F4EA",
+          DEFAULT: "rgb(var(--valide) / <alpha-value>)",
+          clair: "rgb(var(--valide-clair) / <alpha-value>)",
         },
       },
       fontFamily: {

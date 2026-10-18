@@ -92,7 +92,7 @@ export function TicketEnCours({ onSucces }: { onSucces: (r: ResultatEncaissement
         </div>
         <div className="mb-3 flex items-end justify-between">
           <span className="text-encre-douce">Total</span>
-          <span className="tabular text-4xl">{total.toLocaleString("fr-FR")} F</span>
+          <span className="tabular text-4xl" aria-live="polite">{total.toLocaleString("fr-FR")} F</span>
         </div>
         <Button
           variante="valide"

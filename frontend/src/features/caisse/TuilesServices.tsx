@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Service } from "../../lib/api";
 import { chargerAvecCache } from "../../lib/offline";
@@ -32,6 +32,23 @@ export function TuilesServices() {
   });
   const ajouter = useTicketStore((s) => s.ajouter);
   const [recherche, setRecherche] = useState("");
+  const grille = useRef<HTMLDivElement>(null);
+
+  // Navigation clavier de la grille (flèches), en plus de Tab/Entrée (DA §11.8).
+  function surFleches(e: React.KeyboardEvent<HTMLDivElement>) {
+    const touches = ["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"];
+    if (!touches.includes(e.key) || !grille.current) return;
+    const tuiles = Array.from(grille.current.querySelectorAll<HTMLButtonElement>("button[data-tuile]"));
+    const i = tuiles.indexOf(document.activeElement as HTMLButtonElement);
+    if (i === -1) return;
+    e.preventDefault();
+    // Nombre de colonnes déduit de la position des tuiles sur la 1re ligne.
+    const haut = tuiles[0].offsetTop;
+    const colonnes = Math.max(1, tuiles.filter((t) => t.offsetTop === haut).length);
+    const pas = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : e.key === "ArrowDown" ? colonnes : -colonnes;
+    const cible = tuiles[Math.min(tuiles.length - 1, Math.max(0, i + pas))];
+    cible?.focus();
+  }
 
   const resultats = useMemo(() => {
     const actifs = (services.data ?? []).filter((s) => s.actif);
@@ -57,10 +74,18 @@ export function TuilesServices() {
           {recherche ? "Aucun service ne correspond." : "Aucun service actif. Ajoutez-en dans le Catalogue."}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+        <div
+          ref={grille}
+          role="grid"
+          aria-label="Services"
+          onKeyDown={surFleches}
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3"
+        >
           {resultats.map((s) => (
             <button
               key={s.id}
+              data-tuile
+              aria-label={`${s.nom}, ${s.prix.toLocaleString("fr-FR")} francs`}
               onClick={() => ajouter(s)}
               className="flex items-center gap-2 rounded-xl border border-papier-creux bg-papier-surface p-2 text-left transition-transform active:scale-95 hover:border-cyan"
             >
