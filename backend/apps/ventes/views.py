@@ -76,6 +76,70 @@ class PrestationViewSet(
             status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=False, methods=["post"])
+    def synchroniser(self, request):
+        """POST /prestations/synchroniser/ — envoi par lots des ventes hors ligne.
+
+        Idempotent par `client_uuid` (aucun doublon au rejeu). Le serveur fait
+        autorité sur le stock : une vente qui le ferait passer en négatif est
+        acceptée, avec une alerte de régularisation.
+        """
+        session = (
+            SessionCaisse.objects.filter(employe=request.user, statut=StatutSession.OUVERTE)
+            .first()
+        )
+        if session is None:
+            return Response(
+                {"detail": "Ouvrez une session de caisse pour synchroniser."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        ventes = request.data.get("ventes", [])
+        resultats = []
+        for item in ventes:
+            entree = PrestationCreationSerializer(data=item)
+            if not entree.is_valid():
+                resultats.append({
+                    "client_uuid": item.get("client_uuid"),
+                    "statut": "erreur", "detail": "Données invalides.",
+                })
+                continue
+            donnees = entree.validated_data
+            uuid = donnees.get("client_uuid")
+            deja = bool(uuid) and Prestation.objects.filter(client_uuid=uuid).exists()
+
+            client = None
+            if donnees.get("client"):
+                from apps.clients.models import Client
+
+                client = Client.objects.filter(
+                    id=donnees["client"], secretariat=session.secretariat,
+                ).first()
+
+            try:
+                prestation, alertes = enregistrer_prestation(
+                    session=session,
+                    lignes_saisie=donnees["lignes"],
+                    mode_paiement=donnees["mode_paiement"],
+                    remise=donnees.get("remise", 0),
+                    montant_recu=donnees.get("montant_recu"),
+                    client=client,
+                    client_uuid=uuid,
+                    auteur=request.user,
+                    forcer_stock=True,
+                )
+            except VenteError as exc:
+                resultats.append({"client_uuid": str(uuid), "statut": "erreur", "detail": str(exc)})
+                continue
+
+            resultats.append({
+                "client_uuid": str(uuid),
+                "statut": "doublon" if deja else "ok",
+                "prestation": PrestationSerializer(prestation).data,
+                "alertes_stock": ConsommableSerializer(alertes, many=True).data,
+            })
+        return Response({"resultats": resultats})
+
     @action(detail=True, methods=["post"], permission_classes=[EstGerantOuPlus])
     def annuler(self, request, pk=None):
         """POST /prestations/{id}/annuler/ — annulation avec contre-passation (gérant+)."""

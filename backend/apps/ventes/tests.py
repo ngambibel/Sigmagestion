@@ -211,6 +211,44 @@ class EncaissementTests(APITestCase):
         self.papier.refresh_from_db()
         self.assertEqual(float(self.papier.qte_stock), 994.0)  # 1000 - 6
 
+    def test_synchronisation_par_lot_sans_doublon(self):
+        import uuid
+        u1, u2 = str(uuid.uuid4()), str(uuid.uuid4())
+        # u1 déjà enregistré en ligne.
+        self._vendre([{"service": self.photocopie.id, "quantite": 10}], montant_recu=1000)
+        from apps.ventes.models import Prestation
+        Prestation.objects.filter(montant_total=250).update(client_uuid=u1)
+        self.papier.refresh_from_db()
+        stock_depart = float(self.papier.qte_stock)
+
+        payload = {"ventes": [
+            {"lignes": [{"service": self.photocopie.id, "quantite": 10}],
+             "mode_paiement": "especes", "montant_recu": 1000, "client_uuid": u1},  # doublon
+            {"lignes": [{"service": self.photocopie.id, "quantite": 4}],
+             "mode_paiement": "especes", "montant_recu": 1000, "client_uuid": u2},   # nouveau
+        ]}
+        r = self.client.post("/api/v1/prestations/synchroniser/", payload, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        statuts = {x["client_uuid"]: x["statut"] for x in r.data["resultats"]}
+        self.assertEqual(statuts[u1], "doublon")
+        self.assertEqual(statuts[u2], "ok")
+        # Seule la vente nouvelle a décrémenté le stock (4 feuilles), pas le doublon.
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), stock_depart - 4)
+
+    def test_synchro_accepte_stock_negatif(self):
+        import uuid
+        self.papier.qte_stock = 2
+        self.papier.save()
+        payload = {"ventes": [
+            {"lignes": [{"service": self.photocopie.id, "quantite": 10}],
+             "mode_paiement": "especes", "montant_recu": 1000, "client_uuid": str(uuid.uuid4())},
+        ]}
+        r = self.client.post("/api/v1/prestations/synchroniser/", payload, format="json")
+        self.assertEqual(r.data["resultats"][0]["statut"], "ok")  # accepté malgré stock insuffisant
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.papier.qte_stock), -8.0)  # 2 - 10, régularisation à faire
+
     def test_client_uuid_idempotent(self):
         import uuid
         u = str(uuid.uuid4())

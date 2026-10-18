@@ -577,6 +577,12 @@ export const api = {
     }),
 
   listerPrestations: () => requete<Prestation[]>("/prestations/"),
+
+  synchroniserPrestations: (ventes: unknown[]) =>
+    requete<{ resultats: { client_uuid: string; statut: "ok" | "doublon" | "erreur"; detail?: string }[] }>(
+      "/prestations/synchroniser/",
+      { method: "POST", body: JSON.stringify({ ventes }) },
+    ),
   annulerPrestation: (id: number, motif: string) =>
     requete<Prestation>(`/prestations/${id}/annuler/`, {
       method: "POST",

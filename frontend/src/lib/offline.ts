@@ -45,6 +45,15 @@ export async function enfilerVente(
     resume,
   });
   notifierQueue();
+  // Background Sync : demande au navigateur de réveiller l'app au retour du réseau.
+  try {
+    const reg = (await navigator.serviceWorker?.ready) as
+      | (ServiceWorkerRegistration & { sync?: { register: (t: string) => Promise<void> } })
+      | undefined;
+    await reg?.sync?.register("sigma-sync-ventes");
+  } catch {
+    /* Background Sync non supporté : la synchro au retour réseau prend le relais. */
+  }
   return client_uuid;
 }
 

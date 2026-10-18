@@ -6,6 +6,7 @@ import { api } from "../../lib/api";
 import { entreesVisibles } from "./navigation";
 import { ClocheNotifications } from "../../features/notifications/ClocheNotifications";
 import { useOnline, useVentesEnAttente } from "../../features/offline/useOffline";
+import { useSynchro } from "../../features/offline/useSynchro";
 
 function lienClasses({ isActive }: { isActive: boolean }) {
   return [
@@ -22,6 +23,7 @@ export function AppShell() {
   const entreesMobile = entrees.filter((e) => e.mobile);
   const enLigne = useOnline();
   const nbEnAttente = useVentesEnAttente();
+  const { enCours: synchroEnCours, synchroniser } = useSynchro();
 
   const deconnexion = useMutation({
     mutationFn: async () => {
@@ -55,6 +57,15 @@ export function AppShell() {
               ? `Hors ligne. ${nbEnAttente} vente(s) seront envoyées au retour du réseau.`
               : "Hors ligne. Vos ventes seront enregistrées localement."
             : `${nbEnAttente} vente(s) en attente de synchronisation.`}
+          {enLigne && nbEnAttente > 0 && (
+            <button
+              onClick={() => synchroniser()}
+              disabled={synchroEnCours}
+              className="ml-2 rounded-md bg-jaune px-2 py-0.5 text-xs font-medium text-white disabled:opacity-60"
+            >
+              {synchroEnCours ? "Synchronisation…" : "Synchroniser"}
+            </button>
+          )}
         </div>
       )}
 

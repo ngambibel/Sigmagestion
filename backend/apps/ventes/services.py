@@ -34,7 +34,7 @@ def _generer_numero(secretariat) -> str:
 @transaction.atomic
 def enregistrer_prestation(
     *, session, lignes_saisie, mode_paiement, remise=0, montant_recu=None,
-    nom_client="", client=None, client_uuid=None, auteur=None,
+    nom_client="", client=None, client_uuid=None, auteur=None, forcer_stock=False,
 ):
     # Idempotence (RG §8.2) : si ce client_uuid a déjà été enregistré, on renvoie
     # la prestation existante sans rien recréer (rejeu de synchro hors ligne).
@@ -116,7 +116,9 @@ def enregistrer_prestation(
         c.id: c
         for c in Consommable.objects.select_for_update().filter(id__in=list(besoins.keys()))
     }
-    if not secretariat.autoriser_stock_negatif:
+    # En synchro hors ligne (forcer_stock), le serveur fait autorité : on accepte
+    # même en négatif (une alerte de régularisation sera remontée via `alertes`).
+    if not secretariat.autoriser_stock_negatif and not forcer_stock:
         manquants = [
             f"{consommables[cid].nom} (reste {consommables[cid].qte_stock}, besoin {besoin})"
             for cid, besoin in besoins.items()

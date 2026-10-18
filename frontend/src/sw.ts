@@ -43,6 +43,19 @@ registerRoute(
   }),
 );
 
+// --- Background Sync : au retour du réseau, on réveille l'app pour qu'elle vide
+//     la file (le JWT vit côté fenêtre, la fenêtre fait donc l'envoi). ---
+self.addEventListener("sync", (event: Event) => {
+  const e = event as Event & { tag: string; waitUntil: (p: Promise<unknown>) => void };
+  if (e.tag === "sigma-sync-ventes") {
+    e.waitUntil(
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((liste) => {
+        liste.forEach((c) => c.postMessage({ type: "sigma-sync" }));
+      }),
+    );
+  }
+});
+
 // --- Notifications push (repris de l'étape 4.2) ---
 self.addEventListener("push", (event) => {
   let data: { titre?: string; corps?: string; url?: string; tag?: string } = {};

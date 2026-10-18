@@ -640,7 +640,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 
 ---
 
-## Étape 7.3 — Synchronisation idempotente `[ ]`
+## Étape 7.3 — Synchronisation idempotente `[~]`
 
 🎯 **Objectif** : au retour du réseau, tout remonte sans doublon.
 
