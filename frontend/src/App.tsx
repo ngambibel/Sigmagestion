@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import {
   RequireAuth,
   RequireMotDePasseAJour,
@@ -11,6 +11,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ChangerMotDePassePage from "./pages/auth/ChangerMotDePassePage";
 import InstallationPage from "./pages/InstallationPage";
+import NotFoundPage from "./pages/erreur/NotFoundPage";
 
 // Pages chargées paresseusement (découpage de code).
 const CaissePage = lazy(() => import("./pages/caisse/CaissePage"));
@@ -118,7 +119,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

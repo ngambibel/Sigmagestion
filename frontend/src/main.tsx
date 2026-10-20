@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import App from "./App.tsx";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 import { appliquerTheme, useThemeStore } from "./stores/theme";
@@ -21,10 +22,12 @@ window
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -674,7 +674,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 🔨 Découpage de code, virtualisation des listes, budget de bundle (≤ 200 Ko gzip), `select_related`/`prefetch_related`, tests `assertNumQueries`.
 ✅ Score Lighthouse Performance ≥ 85 sur mobile, bundle sous budget.
 
-## Étape 8.4 — Pages d'erreur, tests E2E et documentation `[ ]`
+## Étape 8.4 — Pages d'erreur, tests E2E et documentation `[~]`
 
 🔨 Pages d'erreur soignées, **8 parcours Playwright** (§15.2 du cahier), documentation utilisateur (guide de démarrage, aide-mémoire caisse).
 ✅ Les 8 parcours critiques passent au vert.
