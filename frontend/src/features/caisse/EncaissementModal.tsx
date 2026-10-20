@@ -6,7 +6,6 @@ import { Button } from "../../components/ui/Button";
 import { api, ApiError, type Prestation, type ResultatEncaissement } from "../../lib/api";
 import { useTicketStore, totalTicket } from "../../stores/ticket";
 import { enfilerVente } from "../../lib/offline";
-import { useOnline } from "../offline/useOffline";
 
 const MODES = [
   { valeur: "especes", libelle: "Espèces" },
@@ -48,7 +47,6 @@ export function EncaissementModal({
     },
   });
 
-  const enLigne = useOnline();
   const monnaie = mode === "especes" ? Math.max(0, montantRecu - total) : 0;
   const insuffisant = mode === "especes" && montantRecu < total;
   const clientManquant = mode === "credit" && !clientId;
@@ -65,6 +63,9 @@ export function EncaissementModal({
   }
 
   const encaisser = useMutation({
+    // « always » : la mutation s'exécute même hors ligne (TanStack met sinon les
+    // mutations en pause) — on gère nous-mêmes la mise en file locale.
+    networkMode: "always",
     mutationFn: async (): Promise<ResultatEncaissement> => {
       const base = {
         lignes: lignes.map((l) => ({
@@ -81,7 +82,8 @@ export function EncaissementModal({
       const resume = { total, nb_lignes: lignes.length, mode };
 
       // Hors ligne : on met en file (zéro perte de saisie), synchro plus tard.
-      if (!enLigne) {
+      // On lit navigator.onLine directement (autoritatif au clic, sans attendre l'état React).
+      if (!navigator.onLine) {
         await enfilerVente(base, resume);
         return resultatHorsLigne();
       }

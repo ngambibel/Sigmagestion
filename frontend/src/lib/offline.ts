@@ -45,15 +45,18 @@ export async function enfilerVente(
     resume,
   });
   notifierQueue();
-  // Background Sync : demande au navigateur de réveiller l'app au retour du réseau.
-  try {
-    const reg = (await navigator.serviceWorker?.ready) as
-      | (ServiceWorkerRegistration & { sync?: { register: (t: string) => Promise<void> } })
-      | undefined;
-    await reg?.sync?.register("sigma-sync-ventes");
-  } catch {
-    /* Background Sync non supporté : la synchro au retour réseau prend le relais. */
-  }
+  // Background Sync : best-effort et NON bloquant (navigator.serviceWorker.ready
+  // peut ne jamais se résoudre hors ligne). La synchro au retour réseau prend le relais.
+  void (async () => {
+    try {
+      const reg = (await navigator.serviceWorker?.ready) as
+        | (ServiceWorkerRegistration & { sync?: { register: (t: string) => Promise<void> } })
+        | undefined;
+      await reg?.sync?.register("sigma-sync-ventes");
+    } catch {
+      /* Background Sync non supporté. */
+    }
+  })();
   return client_uuid;
 }
 

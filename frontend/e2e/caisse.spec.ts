@@ -58,11 +58,11 @@ test("Parcours §15.2-7 : vente hors ligne puis synchronisation", async ({ page,
   await page.getByRole("button", { name: /^Encaisser/ }).click();
   await page.getByRole("dialog").getByRole("button", { name: /^Encaisser/ }).click();
 
-  // Vente mise en file (toast + badge « en attente »).
+  // Vente mise en file : toast de confirmation + bandeau de synchronisation en attente.
   await expect(page.getByText(/enregistrée hors ligne/)).toBeVisible();
-  await expect(page.getByText(/vente\(s\) seront envoyées|en attente de synchronisation/)).toBeVisible();
+  await expect(page.getByText(/seront envoyées au retour du réseau/)).toBeVisible();
 
-  // Retour du réseau → la file se vide (bandeau disparaît).
+  // Retour du réseau → la file se vide (le bandeau disparaît).
   await context.setOffline(false);
-  await expect(page.getByText(/en attente de synchronisation/)).toBeHidden({ timeout: 15000 });
+  await expect(page.getByText(/seront envoyées au retour du réseau/)).toBeHidden({ timeout: 15000 });
 });
