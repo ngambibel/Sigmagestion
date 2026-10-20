@@ -669,7 +669,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 🔨 App `audit` : middleware, `JournalAudit` (opérations sensibles avec valeurs avant/après, RG-16), endpoint `/audit/`.
 ✅ Tu changes un prix / fais un ajustement → l'action apparaît dans le journal d'audit avec l'avant/après.
 
-## Étape 8.3 — Passe de performance `[ ]`
+## Étape 8.3 — Passe de performance `[~]`
 
 🔨 Découpage de code, virtualisation des listes, budget de bundle (≤ 200 Ko gzip), `select_related`/`prefetch_related`, tests `assertNumQueries`.
 ✅ Score Lighthouse Performance ≥ 85 sur mobile, bundle sous budget.
