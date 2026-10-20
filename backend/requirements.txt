@@ -34,5 +34,11 @@ django-structlog==8.1.0
 # === Serveur WSGI (prod) ===
 gunicorn==23.0.0
 
+# === Statiques (prod) ===
+whitenoise[brotli]==6.8.2
+
+# === Supervision des erreurs (prod, optionnel) ===
+sentry-sdk==2.20.0
+
 # === Tests ===
 freezegun==1.5.1

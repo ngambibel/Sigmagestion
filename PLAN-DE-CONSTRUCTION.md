@@ -679,7 +679,7 @@ Ouvre `http://localhost:5173`. Tu dois voir une page aux couleurs SigmaGestion (
 🔨 Pages d'erreur soignées, **8 parcours Playwright** (§15.2 du cahier), documentation utilisateur (guide de démarrage, aide-mémoire caisse).
 ✅ Les 8 parcours critiques passent au vert.
 
-## Étape 8.5 — Déploiement et mise en production `[ ]`
+## Étape 8.5 — Déploiement et mise en production `[~]`
 
 🔨 Configuration production (Nginx, Gunicorn, HTTPS/HSTS, en-têtes de sécurité, WhiteNoise), sauvegardes, supervision (Sentry, UptimeRobot), checklist de mise en production (annexe D).
 ✅ On déroule la checklist de mise en production ensemble.
