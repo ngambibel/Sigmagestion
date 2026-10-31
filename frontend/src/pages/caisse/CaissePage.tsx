@@ -105,6 +105,27 @@ function RecuToast({
   );
 }
 
+function TuileChiffre({
+  libelle,
+  valeur,
+  couleur,
+}: {
+  libelle: string;
+  valeur: number;
+  couleur?: "magenta" | "valide";
+}) {
+  const teinte =
+    couleur === "magenta" ? "text-magenta" : couleur === "valide" ? "text-valide" : "text-encre";
+  return (
+    <div className="rounded-2xl bg-papier-surface p-3 shadow-sm">
+      <p className="text-xs text-encre-pale">{libelle}</p>
+      <p className={`tabular text-lg font-semibold ${teinte}`}>
+        {valeur.toLocaleString("fr-FR")} <span className="text-sm font-normal text-encre-pale">XAF</span>
+      </p>
+    </div>
+  );
+}
+
 function SessionEnCours({ session }: { session: SessionCaisse }) {
   const [recu, setRecu] = useState<ResultatEncaissement | null>(null);
   const [recuAffiche, setRecuAffiche] = useState<Prestation | null>(null);
@@ -160,6 +181,18 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
           </button>
         </div>
       </div>
+
+      {peutVoirVentes && (
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          <TuileChiffre libelle="Chiffre d'affaires" valeur={session.chiffre_affaires_estime ?? 0} />
+          <TuileChiffre libelle="Coût consommables" valeur={session.cout_consommables_estime ?? 0} couleur="magenta" />
+          <TuileChiffre
+            libelle="Marge"
+            valeur={(session.chiffre_affaires_estime ?? 0) - (session.cout_consommables_estime ?? 0)}
+            couleur="valide"
+          />
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <TuilesServices />

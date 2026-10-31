@@ -10,7 +10,13 @@ from core.tenancy import TenantQuerySetMixin, secretariat_actif
 
 from .models import Depense, SessionCaisse, StatutSession
 from .serializers import ClotureSerializer, DepenseSerializer, SessionCaisseSerializer
-from .services import CaisseError, cloturer_session, montant_theorique_session
+from .services import (
+    CaisseError,
+    chiffre_affaires_session,
+    cloturer_session,
+    cout_consommables_session,
+    montant_theorique_session,
+)
 
 
 class SessionCaisseViewSet(
@@ -67,6 +73,8 @@ class SessionCaisseViewSet(
             return Response(None)
         donnees = self.get_serializer(session).data
         donnees["montant_theorique_estime"] = montant_theorique_session(session)
+        donnees["cout_consommables_estime"] = cout_consommables_session(session)
+        donnees["chiffre_affaires_estime"] = chiffre_affaires_session(session)
         return Response(donnees)
 
     @action(detail=True, methods=["post"])

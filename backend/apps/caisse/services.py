@@ -32,6 +32,38 @@ def montant_theorique_session(session: SessionCaisse) -> int:
     return session.fond_initial + ventes_especes - depenses
 
 
+def cout_consommables_session(session: SessionCaisse) -> int:
+    """Coût de revient des consommables utilisés par les ventes validées de la session.
+
+    Somme de (coût unitaire figé × quantité) sur toutes les lignes des prestations
+    validées. Les prestations annulées sont exclues (leur stock a été réinjecté).
+    """
+    from django.db.models import F
+
+    from apps.ventes.models import LignePrestation, StatutPrestation
+
+    total = (
+        LignePrestation.objects.filter(
+            prestation__session=session,
+            prestation__statut=StatutPrestation.VALIDEE,
+        ).aggregate(total=Sum(F("cout_unitaire") * F("quantite")))["total"]
+        or 0
+    )
+    return int(total)
+
+
+def chiffre_affaires_session(session: SessionCaisse) -> int:
+    """Chiffre d'affaires des ventes validées de la session, tous modes de paiement."""
+    from apps.ventes.models import Prestation, StatutPrestation
+
+    return (
+        Prestation.objects.filter(session=session, statut=StatutPrestation.VALIDEE).aggregate(
+            total=Sum("montant_total")
+        )["total"]
+        or 0
+    )
+
+
 @transaction.atomic
 def cloturer_session(session: SessionCaisse, *, montant_compte: int, commentaire: str = "") -> SessionCaisse:
     session = SessionCaisse.objects.select_for_update().get(pk=session.pk)

@@ -211,6 +211,8 @@ export interface SessionCaisse {
   ouverte_le: string;
   cloturee_le: string | null;
   montant_theorique_estime?: number;
+  cout_consommables_estime?: number;
+  chiffre_affaires_estime?: number;
 }
 
 export interface Depense {
