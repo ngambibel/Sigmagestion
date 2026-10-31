@@ -73,6 +73,14 @@ export function EncaissementModal({
           quantite: l.quantite,
           prix_unitaire: l.prix,
           recto_verso: l.rectoVerso,
+          ...(l.consommables && l.consommables.length
+            ? {
+                consommables: l.consommables.map((c) => ({
+                  consommable: c.consommableId,
+                  quantite: c.quantite,
+                })),
+              }
+            : {}),
         })),
         mode_paiement: mode,
         remise,

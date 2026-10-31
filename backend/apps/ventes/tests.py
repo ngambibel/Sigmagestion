@@ -276,3 +276,39 @@ class EncaissementTests(APITestCase):
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         self.papier.refresh_from_db()
         self.assertEqual(float(self.papier.qte_stock), 990.0)  # 1000 - 10 (pas divisé)
+
+    def test_consommables_choisis_remplacent_la_recette(self):
+        # Reliure vendue avec un choix libre : 1 spirale + 3 feuilles (au lieu de la
+        # recette 1 spirale + 2 feuilles). Le coût et le stock suivent le choix.
+        r = self._vendre(
+            [{
+                "service": self.reliure.id, "quantite": 1,
+                "consommables": [
+                    {"consommable": self.spirale.id, "quantite": 1},
+                    {"consommable": self.papier.id, "quantite": 3},
+                ],
+            }],
+            montant_recu=500,
+        )
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        ligne = r.data["prestation"]["lignes"][0]
+        self.assertEqual(ligne["cout_unitaire"], 171)  # 1×150 + 3×7
+        self.spirale.refresh_from_db()
+        self.papier.refresh_from_db()
+        self.assertEqual(float(self.spirale.qte_stock), 49.0)  # 50 - 1
+        self.assertEqual(float(self.papier.qte_stock), 997.0)  # 1000 - 3 (pas 2 de la recette)
+
+    def test_consommable_etranger_refuse(self):
+        autre_sec = Secretariat.objects.create(nom="Autre", code="AUT01", proprietaire=self.proprio)
+        intrus = Consommable.objects.create(
+            secretariat=autre_sec, nom="Intrus", unite_mesure="u",
+            prix_achat=10, qte_stock=100, seuil_alerte=1,
+        )
+        r = self._vendre(
+            [{
+                "service": self.reliure.id, "quantite": 1,
+                "consommables": [{"consommable": intrus.id, "quantite": 1}],
+            }],
+            montant_recu=500,
+        )
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)

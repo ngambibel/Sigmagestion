@@ -265,6 +265,8 @@ export interface SaisieLigne {
   quantite: number;
   prix_unitaire?: number;
   recto_verso?: boolean;
+  /** Consommables choisis à la vente ; remplacent la recette du service. */
+  consommables?: { consommable: number; quantite: number }[];
 }
 
 export interface TableauDeBord {

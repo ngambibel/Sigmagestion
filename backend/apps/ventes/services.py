@@ -56,6 +56,23 @@ def enregistrer_prestation(
     # Verrou secrétariat : sérialise la numérotation des tickets.
     secretariat = Secretariat.objects.select_for_update().get(pk=session.secretariat_id)
 
+    # Pré-charge les consommables choisis manuellement (pour leur prix d'achat),
+    # cloisonnés au secrétariat : un identifiant étranger est rejeté.
+    ids_manuels = {
+        int(cm["consommable"])
+        for item in lignes_saisie
+        for cm in (item.get("consommables") or [])
+    }
+    conso_manuels: dict[int, Consommable] = {}
+    if ids_manuels:
+        conso_manuels = {
+            c.id: c
+            for c in Consommable.objects.filter(id__in=ids_manuels, secretariat=secretariat)
+        }
+        introuvables = ids_manuels - set(conso_manuels)
+        if introuvables:
+            raise VenteError("Consommable introuvable dans ce secrétariat.")
+
     # 1. Figer les lignes (prix appliqué + coût de revient) et cumuler les besoins en stock.
     #    - Le prix unitaire est modifiable à la vente (rabais gros volume).
     #    - En recto-verso, les consommables « feuille » sont divisés par 2 (arrondi au supérieur) ;
@@ -79,12 +96,24 @@ def enregistrer_prestation(
             raise VenteError("Le prix ne peut pas être négatif.")
 
         cout_ligne = Decimal("0")
-        for nl in service.lignes_nomenclature.select_related("consommable").all():
-            besoin = nl.qte_par_unite * quantite
-            if recto_verso and nl.divise_en_recto_verso:
-                besoin = (besoin / Decimal("2")).to_integral_value(rounding=ROUND_CEILING)
-            cout_ligne += besoin * nl.consommable.prix_achat
-            besoins[nl.consommable_id] = besoins.get(nl.consommable_id, Decimal("0")) + besoin
+        choisis = item.get("consommables") or []
+        if choisis:
+            # Choix libre à la vente : ces consommables remplacent la recette.
+            # Les quantités saisies sont le total réellement consommé pour la ligne.
+            for cm in choisis:
+                cid = int(cm["consommable"])
+                besoin = Decimal(str(cm["quantite"]))
+                if besoin <= 0:
+                    continue
+                cout_ligne += besoin * conso_manuels[cid].prix_achat
+                besoins[cid] = besoins.get(cid, Decimal("0")) + besoin
+        else:
+            for nl in service.lignes_nomenclature.select_related("consommable").all():
+                besoin = nl.qte_par_unite * quantite
+                if recto_verso and nl.divise_en_recto_verso:
+                    besoin = (besoin / Decimal("2")).to_integral_value(rounding=ROUND_CEILING)
+                cout_ligne += besoin * nl.consommable.prix_achat
+                besoins[nl.consommable_id] = besoins.get(nl.consommable_id, Decimal("0")) + besoin
 
         cout_unitaire = int((cout_ligne / quantite).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
         sous_total += prix_applique * quantite
@@ -114,7 +143,9 @@ def enregistrer_prestation(
     # 3. Verrouiller les consommables et vérifier le stock.
     consommables = {
         c.id: c
-        for c in Consommable.objects.select_for_update().filter(id__in=list(besoins.keys()))
+        for c in Consommable.objects.select_for_update().filter(
+            id__in=list(besoins.keys()), secretariat=secretariat
+        )
     }
     # En synchro hors ligne (forcer_stock), le serveur fait autorité : on accepte
     # même en négatif (une alerte de régularisation sera remontée via `alertes`).

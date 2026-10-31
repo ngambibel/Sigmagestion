@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useTicketStore, sousTotal, totalTicket } from "../../stores/ticket";
+import { useTicketStore, sousTotal, totalTicket, coutMatiereLigne } from "../../stores/ticket";
 import { Button } from "../../components/ui/Button";
 import { EncaissementModal } from "./EncaissementModal";
+import { ConsommablesLigneModal } from "./ConsommablesLigneModal";
 import type { ResultatEncaissement } from "../../lib/api";
 
 export function TicketEnCours({ onSucces }: { onSucces: (r: ResultatEncaissement) => void }) {
   const [encaissementOuvert, setEncaissementOuvert] = useState(false);
+  const [consoLigne, setConsoLigne] = useState<{ serviceId: number; nom: string } | null>(null);
   const lignes = useTicketStore((s) => s.lignes);
   const remise = useTicketStore((s) => s.remise);
   const changerQuantite = useTicketStore((s) => s.changerQuantite);
@@ -74,6 +76,20 @@ export function TicketEnCours({ onSucces }: { onSucces: (r: ResultatEncaissement
                   Recto-verso (2× moins de feuilles)
                 </label>
               )}
+              <div className="mt-1 flex items-center gap-2 text-sm">
+                <button
+                  onClick={() => setConsoLigne({ serviceId: l.serviceId, nom: l.nom })}
+                  className="font-medium text-cyan underline"
+                >
+                  Consommables
+                </button>
+                {l.consommables && l.consommables.length > 0 && (
+                  <span className="rounded bg-magenta-clair px-1.5 py-0.5 text-xs text-magenta">
+                    {l.consommables.length} choisi{l.consommables.length > 1 ? "s" : ""} · coût{" "}
+                    {coutMatiereLigne(l).toLocaleString("fr-FR")} F
+                  </span>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -107,6 +123,13 @@ export function TicketEnCours({ onSucces }: { onSucces: (r: ResultatEncaissement
 
       {encaissementOuvert && (
         <EncaissementModal onFermer={() => setEncaissementOuvert(false)} onSucces={onSucces} />
+      )}
+      {consoLigne && (
+        <ConsommablesLigneModal
+          serviceId={consoLigne.serviceId}
+          nomService={consoLigne.nom}
+          onFermer={() => setConsoLigne(null)}
+        />
       )}
     </div>
   );

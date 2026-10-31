@@ -2,6 +2,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Service } from "../lib/api";
 
+export interface ConsommableChoisi {
+  consommableId: number;
+  nom: string;
+  quantite: number;
+  prixAchat: number; // coût de revient unitaire (CUMP) figé à l'affichage
+}
+
 export interface LigneTicket {
   serviceId: number;
   nom: string;
@@ -10,6 +17,9 @@ export interface LigneTicket {
   quantite: number;
   rectoVerso: boolean;
   rectoVersoPossible: boolean;
+  // Consommables choisis librement à la vente ; s'ils sont présents, ils
+  // remplacent la recette du service (coût + déduction du stock).
+  consommables?: ConsommableChoisi[];
 }
 
 interface TicketState {
@@ -19,6 +29,7 @@ interface TicketState {
   changerQuantite: (serviceId: number, quantite: number) => void;
   changerPrix: (serviceId: number, prix: number) => void;
   basculerRectoVerso: (serviceId: number) => void;
+  definirConsommables: (serviceId: number, consommables: ConsommableChoisi[]) => void;
   retirer: (serviceId: number) => void;
   definirRemise: (montant: number) => void;
   vider: () => void;
@@ -75,6 +86,14 @@ export const useTicketStore = create<TicketState>()(
             l.serviceId === serviceId ? { ...l, rectoVerso: !l.rectoVerso } : l,
           ),
         })),
+      definirConsommables: (serviceId, consommables) =>
+        set((etat) => ({
+          lignes: etat.lignes.map((l) =>
+            l.serviceId === serviceId
+              ? { ...l, consommables: consommables.length ? consommables : undefined }
+              : l,
+          ),
+        })),
       retirer: (serviceId) =>
         set((etat) => ({ lignes: etat.lignes.filter((l) => l.serviceId !== serviceId) })),
       definirRemise: (montant) => set({ remise: Math.max(0, montant) }),
@@ -92,4 +111,15 @@ export function sousTotal(lignes: LigneTicket[]): number {
 /** Total à payer (après remise, jamais négatif). */
 export function totalTicket(lignes: LigneTicket[], remise: number): number {
   return Math.max(0, sousTotal(lignes) - remise);
+}
+
+/** Coût matière d'une ligne (consommables choisis uniquement ; la recette est
+ *  calculée côté serveur et n'apparaît donc pas ici tant qu'on ne la choisit pas). */
+export function coutMatiereLigne(l: LigneTicket): number {
+  return (l.consommables ?? []).reduce((s, c) => s + c.quantite * c.prixAchat, 0);
+}
+
+/** Coût matière total des consommables choisis sur le ticket. */
+export function coutMatiereTicket(lignes: LigneTicket[]): number {
+  return lignes.reduce((s, l) => s + coutMatiereLigne(l), 0);
 }
