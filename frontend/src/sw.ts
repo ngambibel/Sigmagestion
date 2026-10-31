@@ -6,7 +6,7 @@
 import { clientsClaim } from "workbox-core";
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
-import { NetworkFirst, StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
+import { NetworkFirst, CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: unknown[] };
@@ -25,11 +25,14 @@ const handlerNavigation = new NetworkFirst({
 });
 registerRoute(new NavigationRoute(handlerNavigation, { denylist: [/^\/api\//, /^\/admin\//] }));
 
-// Catalogue et consommables : lecture rapide depuis le cache, revalidation en fond.
+// Catalogue et consommables : données fraîches en priorité (réseau), cache en
+// secours hors ligne. NetworkFirst évite d'afficher une version périmée après
+// une création/modification tout en gardant la lecture hors ligne.
 registerRoute(
   ({ url }) => /\/api\/v1\/(services|consommables|secretariats|onboarding)/.test(url.pathname),
-  new StaleWhileRevalidate({
+  new NetworkFirst({
     cacheName: "api-catalogue",
+    networkTimeoutSeconds: 3,
     plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 24 * 3600 })],
   }),
 );
