@@ -33,9 +33,9 @@ export function AppShell() {
   });
 
   return (
-    <div className="min-h-screen bg-papier">
-      {/* En-tête compact sticky */}
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-papier-creux bg-papier-surface px-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-papier">
+      {/* En-tête compact fixe */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-papier-creux bg-papier-surface px-4">
         <span className="font-display text-lg font-semibold">SigmaGestion</span>
         <div className="flex items-center gap-3">
           <ClocheNotifications />
@@ -50,7 +50,7 @@ export function AppShell() {
 
       {/* Bandeau hors-ligne / synchronisation en attente */}
       {(!enLigne || nbEnAttente > 0) && (
-        <div className="flex items-center justify-center gap-2 bg-jaune-clair px-4 py-1.5 text-sm text-jaune">
+        <div className="flex shrink-0 items-center justify-center gap-2 bg-jaune-clair px-4 py-1.5 text-sm text-jaune">
           <span aria-hidden>{enLigne ? "⏳" : "📴"}</span>
           {!enLigne
             ? nbEnAttente > 0
@@ -69,9 +69,9 @@ export function AppShell() {
         </div>
       )}
 
-      <div className="mx-auto flex w-full max-w-6xl">
-        {/* Barre latérale desktop */}
-        <aside className="hidden w-60 shrink-0 border-r border-papier-creux p-3 md:block">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-hidden">
+        {/* Barre latérale desktop (fixe, défile seule si besoin) */}
+        <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-papier-creux p-3 md:block">
           <nav className="flex flex-col gap-1">
             {entrees.map((e) => (
               <NavLink key={e.chemin} to={e.chemin} end={e.chemin === "/"} className={lienClasses}>
@@ -82,8 +82,8 @@ export function AppShell() {
           </nav>
         </aside>
 
-        {/* Zone de travail */}
-        <main className="min-h-[calc(100vh-3.5rem)] flex-1 p-4 pb-24 md:pb-4">
+        {/* Zone de travail : seul panneau qui défile */}
+        <main className="flex-1 overflow-y-auto p-4 pb-24 md:pb-4">
           <Suspense fallback={<p className="text-encre-pale">Chargement…</p>}>
             <Outlet />
           </Suspense>

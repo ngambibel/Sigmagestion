@@ -60,15 +60,16 @@ export function TuilesServices() {
   if (services.isLoading) return <p className="text-encre-pale">Chargement des services…</p>;
 
   return (
-    <div>
+    <div className="flex flex-col lg:h-full lg:min-h-0">
       <input
         type="search"
         value={recherche}
         onChange={(e) => setRecherche(e.target.value)}
         placeholder="Rechercher un service…"
-        className="mb-3 h-11 w-full rounded-xl border border-papier-creux bg-papier-surface px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
+        className="mb-3 h-11 w-full shrink-0 rounded-xl border border-papier-creux bg-papier-surface px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan"
       />
 
+      <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       {resultats.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-papier-creux bg-papier-surface p-8 text-center text-encre-pale">
           {recherche ? "Aucun service ne correspond." : "Aucun service actif. Ajoutez-en dans le Catalogue."}
@@ -98,6 +99,7 @@ export function TuilesServices() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

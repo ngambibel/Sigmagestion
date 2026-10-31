@@ -143,7 +143,7 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
   };
 
   return (
-    <div>
+    <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       {recu && (
         <RecuToast
           recu={recu}
@@ -155,7 +155,7 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
         />
       )}
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
+      <div className="mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
         <span className="rounded-lg bg-valide px-2 py-1 text-sm text-white">Caisse ouverte</span>
         <span className="flex items-baseline gap-1.5">
           <span className="text-encre-douce">En caisse (espèces) :</span>
@@ -183,7 +183,7 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
       </div>
 
       {peutVoirVentes && (
-        <div className="mb-4 grid grid-cols-3 gap-3">
+        <div className="mb-4 grid shrink-0 grid-cols-3 gap-3">
           <TuileChiffre libelle="Chiffre d'affaires" valeur={session.chiffre_affaires_estime ?? 0} />
           <TuileChiffre libelle="Coût consommables" valeur={session.cout_consommables_estime ?? 0} couleur="magenta" />
           <TuileChiffre
@@ -194,9 +194,11 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-        <TuilesServices />
-        <div className="lg:sticky lg:top-16 lg:h-[calc(100vh-6rem)]">
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[1fr_360px]">
+        <div className="lg:min-h-0">
+          <TuilesServices />
+        </div>
+        <div className="lg:min-h-0 lg:overflow-y-auto">
           <TicketEnCours onSucces={surSucces} />
         </div>
       </div>
@@ -217,8 +219,10 @@ export default function CaissePage() {
   });
 
   return (
-    <div>
-      <EnTetePage titre="Caisse" sousTitre="Enregistrez vos prestations et encaissez." />
+    <div className="flex h-full flex-col">
+      <div className="shrink-0">
+        <EnTetePage titre="Caisse" sousTitre="Enregistrez vos prestations et encaissez." />
+      </div>
       {session.isLoading ? (
         <p className="text-encre-pale">Chargement…</p>
       ) : session.data ? (
