@@ -136,11 +136,15 @@ function SessionEnCours({ session }: { session: SessionCaisse }) {
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-valide-clair p-3">
         <span className="rounded-lg bg-valide px-2 py-1 text-sm text-white">Caisse ouverte</span>
-        <span className="text-encre-douce">
-          Fond : <span className="tabular font-medium">{session.fond_initial.toLocaleString("fr-FR")} XAF</span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-encre-douce">En caisse (espèces) :</span>
+          <span className="tabular text-xl font-semibold text-valide">
+            {(session.montant_theorique_estime ?? session.fond_initial).toLocaleString("fr-FR")} XAF
+          </span>
         </span>
         <span className="text-encre-pale">
-          depuis {new Date(session.ouverte_le).toLocaleString("fr-FR", { timeStyle: "short", dateStyle: "short" })}
+          fond {session.fond_initial.toLocaleString("fr-FR")} · depuis{" "}
+          {new Date(session.ouverte_le).toLocaleString("fr-FR", { timeStyle: "short", dateStyle: "short" })}
         </span>
         <div className="ml-auto flex items-center gap-3">
           {peutVoirVentes && (

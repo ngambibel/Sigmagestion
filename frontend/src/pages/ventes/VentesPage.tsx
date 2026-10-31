@@ -28,6 +28,7 @@ export default function VentesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["prestations"] });
       queryClient.invalidateQueries({ queryKey: ["consommables"] });
+      queryClient.invalidateQueries({ queryKey: ["session-active"] });
     },
   });
 

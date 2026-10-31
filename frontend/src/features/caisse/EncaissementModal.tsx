@@ -99,6 +99,8 @@ export function EncaissementModal({
     onSuccess: async (resultat) => {
       vider();
       await queryClient.invalidateQueries({ queryKey: ["consommables"] });
+      // Met à jour le montant en caisse affiché (ventes espèces).
+      await queryClient.invalidateQueries({ queryKey: ["session-active"] });
       onSucces(resultat);
       onFermer();
     },
