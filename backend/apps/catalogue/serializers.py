@@ -8,18 +8,37 @@ from apps.stocks.models import Consommable
 from .models import NomenclatureService, Service
 
 
+class NomenclatureLigneSerializer(serializers.ModelSerializer):
+    """Lecture d'une ligne de nomenclature (recette)."""
+
+    consommable_nom = serializers.CharField(source="consommable.nom", read_only=True)
+    unite_mesure = serializers.CharField(source="consommable.unite_mesure", read_only=True)
+    prix_achat = serializers.IntegerField(source="consommable.prix_achat", read_only=True)
+
+    class Meta:
+        model = NomenclatureService
+        fields = [
+            "id", "consommable", "consommable_nom", "unite_mesure", "prix_achat",
+            "qte_par_unite", "divise_en_recto_verso",
+        ]
+
+
 class ServiceSerializer(serializers.ModelSerializer):
     activable = serializers.BooleanField(read_only=True)
     recto_verso_possible = serializers.BooleanField(read_only=True)
+    # Recette : consommables associés, utilisés pour pré-remplir la vente.
+    nomenclature = NomenclatureLigneSerializer(
+        source="lignes_nomenclature", many=True, read_only=True,
+    )
 
     class Meta:
         model = Service
         fields = [
             "id", "nom", "categorie", "unite_facturation", "prix",
             "consomme_stock", "actif", "couleur", "icone", "image", "ordre",
-            "activable", "recto_verso_possible",
+            "activable", "recto_verso_possible", "nomenclature",
         ]
-        read_only_fields = ["id", "activable", "recto_verso_possible"]
+        read_only_fields = ["id", "activable", "recto_verso_possible", "nomenclature"]
 
     def validate(self, attrs):
         """RG-06 : on ne peut pas *activer* un service consommateur sans nomenclature."""
@@ -33,20 +52,6 @@ class ServiceSerializer(serializers.ModelSerializer):
                 {"actif": "Définissez d'abord la nomenclature (au moins un consommable)."}
             )
         return attrs
-
-
-class NomenclatureLigneSerializer(serializers.ModelSerializer):
-    """Lecture d'une ligne de nomenclature."""
-
-    consommable_nom = serializers.CharField(source="consommable.nom", read_only=True)
-    unite_mesure = serializers.CharField(source="consommable.unite_mesure", read_only=True)
-
-    class Meta:
-        model = NomenclatureService
-        fields = [
-            "id", "consommable", "consommable_nom", "unite_mesure",
-            "qte_par_unite", "divise_en_recto_verso",
-        ]
 
 
 class NomenclatureEcritureLigneSerializer(serializers.Serializer):

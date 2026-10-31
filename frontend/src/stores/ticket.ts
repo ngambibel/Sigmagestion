@@ -50,6 +50,13 @@ export const useTicketStore = create<TicketState>()(
               ),
             };
           }
+          // Pré-remplissage depuis la recette du service (quantités PAR UNITÉ vendue).
+          const consommables = (service.nomenclature ?? []).map((n) => ({
+            consommableId: n.consommable,
+            nom: n.consommable_nom,
+            quantite: Number(n.qte_par_unite),
+            prixAchat: Number(n.prix_achat),
+          }));
           return {
             lignes: [
               ...etat.lignes,
@@ -61,6 +68,7 @@ export const useTicketStore = create<TicketState>()(
                 quantite: 1,
                 rectoVerso: false,
                 rectoVersoPossible: service.recto_verso_possible,
+                consommables: consommables.length ? consommables : undefined,
               },
             ],
           };
@@ -113,10 +121,10 @@ export function totalTicket(lignes: LigneTicket[], remise: number): number {
   return Math.max(0, sousTotal(lignes) - remise);
 }
 
-/** Coût matière d'une ligne (consommables choisis uniquement ; la recette est
- *  calculée côté serveur et n'apparaît donc pas ici tant qu'on ne la choisit pas). */
+/** Coût matière d'une ligne : coût par unité (consommables choisis) × quantité vendue. */
 export function coutMatiereLigne(l: LigneTicket): number {
-  return (l.consommables ?? []).reduce((s, c) => s + c.quantite * c.prixAchat, 0);
+  const parUnite = (l.consommables ?? []).reduce((s, c) => s + c.quantite * c.prixAchat, 0);
+  return parUnite * l.quantite;
 }
 
 /** Coût matière total des consommables choisis sur le ticket. */

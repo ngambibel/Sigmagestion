@@ -174,6 +174,7 @@ export interface Service {
   ordre: number;
   activable: boolean;
   recto_verso_possible: boolean;
+  nomenclature: NomenclatureLigne[];
 }
 
 export interface NomenclatureLigne {
@@ -181,6 +182,7 @@ export interface NomenclatureLigne {
   consommable: number;
   consommable_nom: string;
   unite_mesure: string;
+  prix_achat: number;
   qte_par_unite: string;
   divise_en_recto_verso: boolean;
 }

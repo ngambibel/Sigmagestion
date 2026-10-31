@@ -278,25 +278,25 @@ class EncaissementTests(APITestCase):
         self.assertEqual(float(self.papier.qte_stock), 990.0)  # 1000 - 10 (pas divisé)
 
     def test_consommables_choisis_remplacent_la_recette(self):
-        # Reliure vendue avec un choix libre : 1 spirale + 3 feuilles (au lieu de la
-        # recette 1 spirale + 2 feuilles). Le coût et le stock suivent le choix.
+        # Reliure ×2, choix libre PAR UNITÉ : 1 spirale + 3 feuilles/unité (au lieu de
+        # la recette 1 spirale + 2 feuilles). Les besoins sont multipliés par la quantité.
         r = self._vendre(
             [{
-                "service": self.reliure.id, "quantite": 1,
+                "service": self.reliure.id, "quantite": 2,
                 "consommables": [
                     {"consommable": self.spirale.id, "quantite": 1},
                     {"consommable": self.papier.id, "quantite": 3},
                 ],
             }],
-            montant_recu=500,
+            montant_recu=1000,
         )
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         ligne = r.data["prestation"]["lignes"][0]
-        self.assertEqual(ligne["cout_unitaire"], 171)  # 1×150 + 3×7
+        self.assertEqual(ligne["cout_unitaire"], 171)  # (2×150 + 6×7) / 2
         self.spirale.refresh_from_db()
         self.papier.refresh_from_db()
-        self.assertEqual(float(self.spirale.qte_stock), 49.0)  # 50 - 1
-        self.assertEqual(float(self.papier.qte_stock), 997.0)  # 1000 - 3 (pas 2 de la recette)
+        self.assertEqual(float(self.spirale.qte_stock), 48.0)  # 50 - 2 (1/unité × 2)
+        self.assertEqual(float(self.papier.qte_stock), 994.0)  # 1000 - 6 (3/unité × 2)
 
     def test_consommable_etranger_refuse(self):
         autre_sec = Secretariat.objects.create(nom="Autre", code="AUT01", proprietaire=self.proprio)

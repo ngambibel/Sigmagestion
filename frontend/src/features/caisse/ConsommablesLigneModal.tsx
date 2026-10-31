@@ -23,6 +23,7 @@ export function ConsommablesLigneModal({
   const definirConsommables = useTicketStore((s) => s.definirConsommables);
   const stock = useQuery({ queryKey: ["consommables"], queryFn: api.listerConsommables });
 
+  const quantiteLigne = ligne?.quantite ?? 1;
   const [choisis, setChoisis] = useState<ConsommableChoisi[]>(ligne?.consommables ?? []);
 
   const disponibles = (stock.data ?? []).filter(
@@ -42,7 +43,8 @@ export function ConsommablesLigneModal({
   const retirer = (id: number) =>
     setChoisis((cs) => cs.filter((x) => x.consommableId !== id));
 
-  const coutTotal = choisis.reduce((s, c) => s + c.quantite * c.prixAchat, 0);
+  const coutParUnite = choisis.reduce((s, c) => s + c.quantite * c.prixAchat, 0);
+  const coutTotal = coutParUnite * quantiteLigne;
 
   const enregistrer = () => {
     definirConsommables(serviceId, choisis.filter((c) => c.quantite > 0));
@@ -52,8 +54,9 @@ export function ConsommablesLigneModal({
   return (
     <Modal ouvert titre={`Consommables — ${nomService}`} onFermer={onFermer}>
       <p className="mb-4 text-sm text-encre-douce">
-        Ajoutez les consommables réellement utilisés pour cette prestation. Ils seront
-        déduits du stock et déterminent le coût matière.
+        Quantités <strong>par unité vendue</strong> (pré-remplies depuis la recette du service).
+        Elles seront multipliées par la quantité du ticket{quantiteLigne > 1 ? ` (× ${quantiteLigne})` : ""},
+        déduites du stock, et déterminent le coût matière.
       </p>
 
       {stock.isLoading ? (
@@ -100,7 +103,12 @@ export function ConsommablesLigneModal({
           )}
 
           <div className="mt-1 flex items-center justify-between rounded-xl bg-papier-creux p-3">
-            <span className="text-encre-douce">Coût matière de cette ligne</span>
+            <span className="text-encre-douce">
+              Coût matière de cette ligne
+              {quantiteLigne > 1 && (
+                <span className="text-encre-pale"> ({coutParUnite.toLocaleString("fr-FR")} F × {quantiteLigne})</span>
+              )}
+            </span>
             <span className="tabular text-lg font-semibold text-magenta">
               {coutTotal.toLocaleString("fr-FR")} F
             </span>

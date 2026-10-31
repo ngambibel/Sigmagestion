@@ -20,7 +20,7 @@ class ServiceViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
     """CRUD des services, cloisonné au secrétariat actif."""
 
     serializer_class = ServiceSerializer
-    queryset = Service.objects.all()
+    queryset = Service.objects.prefetch_related("lignes_nomenclature__consommable").all()
 
     def get_permissions(self):
         actions_ecriture = ("create", "update", "partial_update", "destroy")

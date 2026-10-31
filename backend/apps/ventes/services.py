@@ -99,12 +99,13 @@ def enregistrer_prestation(
         choisis = item.get("consommables") or []
         if choisis:
             # Choix libre à la vente : ces consommables remplacent la recette.
-            # Les quantités saisies sont le total réellement consommé pour la ligne.
+            # Les quantités saisies sont PAR UNITÉ vendue → on multiplie par la quantité.
             for cm in choisis:
                 cid = int(cm["consommable"])
-                besoin = Decimal(str(cm["quantite"]))
-                if besoin <= 0:
+                par_unite = Decimal(str(cm["quantite"]))
+                if par_unite <= 0:
                     continue
+                besoin = par_unite * quantite
                 cout_ligne += besoin * conso_manuels[cid].prix_achat
                 besoins[cid] = besoins.get(cid, Decimal("0")) + besoin
         else:
