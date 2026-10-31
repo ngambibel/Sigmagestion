@@ -61,14 +61,13 @@ export default function CataloguePage() {
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="tabular text-lg">{s.prix.toLocaleString("fr-FR")} XAF</span>
-                {s.consomme_stock && (
-                  <button
-                    onClick={() => setRecette(s)}
-                    className="text-sm font-medium text-cyan underline"
-                  >
-                    Recette
-                  </button>
-                )}
+                <button
+                  onClick={() => setRecette(s)}
+                  className="text-sm font-medium text-cyan underline"
+                  title="Relier ce service à des consommables (déduit le stock et calcule le coût à chaque vente)"
+                >
+                  {s.consomme_stock ? "Recette" : "+ Recette"}
+                </button>
                 <button
                   onClick={() => setEdition({ service: s })}
                   className="text-sm font-medium text-cyan underline"

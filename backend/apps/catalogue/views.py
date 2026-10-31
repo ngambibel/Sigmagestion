@@ -71,6 +71,13 @@ class ServiceViewSet(TenantQuerySetMixin, viewsets.ModelViewSet):
                     for ligne in serializer.validated_data
                 ]
             )
+            # Une recette implique que le service consomme du stock : on aligne le
+            # drapeau pour que la vente déduise le stock et calcule le coût, et que
+            # les badges/activation restent cohérents.
+            a_recette = bool(serializer.validated_data)
+            if service.consomme_stock != a_recette:
+                service.consomme_stock = a_recette
+                service.save(update_fields=["consomme_stock"])
 
         lignes = service.lignes_nomenclature.select_related("consommable")
         return Response(NomenclatureLigneSerializer(lignes, many=True).data)
